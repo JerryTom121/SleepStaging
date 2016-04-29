@@ -246,7 +246,30 @@ eeg_exchange_training[8] = False;
 eeg_exchange_test[8]     = False;
 artefakt_removal[8]      = False;
 feature_extractor_id[8] = 'hybrid'
+"""
+-----------
+Experiment10: Deep Learning artefakt rejection!
+-----------  
+"""         
+''
+split_exp[10]          = False
+split_random[10]       = False
+training_set_exp[10]   = ['EEGDataPool/CM/GABRA/WT/GAB2R26']
+testing_set_exp[10]    = ['EEGDataPool/CM/GABRA/WT/GAB2R22']
 
+
+mapping_exp[10] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+};
+eeg_exchange_training[10] = False;
+eeg_exchange_test[10]     = False;
+artefakt_removal[10]      = False;
+feature_extractor_id[10] = 'imaging'
 
 
 # --------------------------------------------------------------------------- #
@@ -309,5 +332,6 @@ Xt = np.c_[idx_Xt, Xt];
 Xv = np.c_[idx_Xv, Xv];
 
 np.savetxt(CSV_FOLDER+'train_exp'+str(EXP_NUM)+'.csv', np.c_[Xt, Yt.astype(np.int)], fmt='%f', delimiter=',')
-np.savetxt(CSV_FOLDER+'test_exp'+str(EXP_NUM)+'.csv', Xv, fmt='%f', delimiter=',')
-np.savetxt(CSV_FOLDER+'solution_exp'+str(EXP_NUM)+'.csv', np.r_[[['Id','Label']], np.c_[idx_Xv, Yv]], fmt='%s', delimiter=',')
+#np.savetxt(CSV_FOLDER+'test_exp'+str(EXP_NUM)+'.csv', Xv, fmt='%f', delimiter=',')
+#np.savetxt(CSV_FOLDER+'solution_exp'+str(EXP_NUM)+'.csv', np.r_[[['Id','Label']], np.c_[idx_Xv, Yv]], fmt='%s', delimiter=',')
+np.savetxt(CSV_FOLDER+'test_exp' +str(EXP_NUM)+'.csv', np.c_[Xv, Yv.astype(np.int)], fmt='%f', delimiter=',')

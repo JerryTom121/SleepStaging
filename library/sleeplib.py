@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import math
 
+from scipy import signal
+
 POLY_DEGREE = 2
 
 
@@ -38,14 +40,17 @@ def read_data(csv_folder,exp_num):
 
     # Read from files
     training_file           = np.genfromtxt(csv_folder+'train_exp'+str(exp_num)+'.csv', delimiter=',')
-    testing_file_no_labels  = np.genfromtxt(csv_folder+'test_exp'+str(exp_num)+'.csv', delimiter=',')
-    testing_file_labels     = np.genfromtxt(csv_folder+'solution_exp'+str(exp_num)+'.csv', delimiter=',', skip_header=1)
+    testing_file            = np.genfromtxt(csv_folder+'test_exp'+str(exp_num)+'.csv', delimiter=',')
+    #testing_file_no_labels  = np.genfromtxt(csv_folder+'test_exp'+str(exp_num)+'.csv', delimiter=',')
+    #testing_file_labels     = np.genfromtxt(csv_folder+'solution_exp'+str(exp_num)+'.csv', delimiter=',', skip_header=1)
 
     # Distinguish features and labels
     X_train = training_file[:,1:-1]
     Y_train = training_file[:,-1]
-    X_test  = testing_file_no_labels[:,1:]
-    Y_test  = testing_file_labels[:,-1]
+    X_test  = testing_file[:,1:-1]
+    Y_test  = testing_file[:,-1]
+    #X_test  = testing_file_no_labels[:,1:]
+    #Y_test  = testing_file_labels[:,-1]
 
     # Return values
     return [X_train,Y_train,X_test,Y_test]
@@ -169,3 +174,8 @@ def evaluate_artefakt_detection(predictions,Y_test):
     print "Number of fps  = " + str(num_fp)
     print "Number of fns  = " + str(num_fn) 
     print "-----------------------------------"
+
+
+def bandpass(sig,band,fs):
+    B,A = signal.butter(5, np.array(band)/(fs/2), btype='bandpass')
+    return signal.lfilter(B, A, sig, axis=0)

@@ -2,6 +2,7 @@
 Part of the eeg library which deals with feature 
 and label extraction.
 '''
+from PIL import Image
 import os
 import sys
 from edfplus import load_edf 
@@ -9,6 +10,7 @@ from edfplus import load_edf
 from numpy import fft
 import pywt
 import numpy as np
+from sklearn import preprocessing
 from sklearn.decomposition import PCA,FastICA
 from scipy import signal
 import matplotlib.pyplot as plt
@@ -46,6 +48,7 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
       'fourier': fourier_features,
       'statistical': statistical_features,
       'hybrid': hybrid_features,
+      'imaging': imaging_features,
     }
     feature_extractor = feature_extractors[feature_extractor_id]
     print 'Feature extractor in use is ' + feature_extractor_id
@@ -235,15 +238,12 @@ def hybrid_features(file_path,interval_size=4,exchange_eeg=False):
     # The Artefakts that I miss come in series !!!!!!!!!!
     #
     #
-    '''
-    Try using some of fourier features
-    '''
+    
+    # The Fourier Features
     ffeatures =  fourier_features(file_path)
     #X = ffeatures[:,[3,6]]
     
-    '''
-    Try using some of statistical features
-    '''
+    # Get Raw Signals
     data              = load_edf(file_path)
     sample_rate       = data.sample_rate
     print sample_rate
@@ -253,6 +253,13 @@ def hybrid_features(file_path,interval_size=4,exchange_eeg=False):
     emg  = data.X[data.chan_lab.index('EMG')]
     total_size = len(eeg1)
     epochs = total_size / samples_per_epoch
+
+    # Perform exchange if needed
+    if exchange_eeg:
+        tmp = eeg1
+        eeg1 = eeg2
+        eeg2 = eeg1
+        print "exchange done...."
 
     ##
     ## PERFORM ICA
@@ -343,9 +350,9 @@ def hybrid_features(file_path,interval_size=4,exchange_eeg=False):
 
         #features = [slope1*slope2,eeg1_peak]
         #features = np.hstack([eeg1_epoch,eeg2_epoch])
-        features = eeg1_epoch
+        #features = eeg1_epoch
         #features = [eeg1_peak,eeg2_peak,emg_peak,slope1*slope2,np.max(np.gradient(eeg1_epoch))]
-        #features = [np.std(eeg1_epoch),np.std(emg_epoch)]
+        features = [np.std(eeg1_epoch),np.std(eeg2_epoch)]
         #print features
         #print np.max(eeg1_epoch-eeg2_epoch)
         #print scipy.stats.kurtosis(eeg1_epoch)
@@ -400,6 +407,61 @@ def hybrid_features(file_path,interval_size=4,exchange_eeg=False):
 
     return X
 
+def imaging_features(file_path,interval_size=4,exchange_eeg=False, ds_factor=4):
+    '''
+    Function which extracts imaging features from a given file.
+    The extracted features should be used as an input of convolutional network.
+
+    file_path:     Path to the .edf file
+    interval_size: How many seconds does each epoch last
+    exchange_eeg:  Swap EEG1 and EEG2 signal
+    '''
+    
+    # Get Raw Data and Sampling Characteristics
+    data              = load_edf(file_path)
+    sample_rate       = data.sample_rate
+    samples_per_epoch = interval_size * sample_rate
+    eeg1 = data.X[data.chan_lab.index('EEG1')]
+    eeg2 = data.X[data.chan_lab.index('EEG2')]
+    emg  = data.X[data.chan_lab.index('EMG')]
+    total_size = len(eeg1)
+    epochs = total_size / samples_per_epoch
+
+
+    # Downsampling to reduce signal lenghts
+    eeg1 = scipy.signal.decimate(eeg1,ds_factor)
+    eeg2 = scipy.signal.decimate(eeg2,ds_factor)
+    emg  = scipy.signal.decimate(emg,ds_factor)
+    samples_per_epoch = samples_per_epoch/ds_factor
+
+    # Standardize EEG/EMG signals. This is very important and so far I have a very simple 
+    # standardization method. I should find one which does not depend on the sleep state distribution, 
+    # or number of artefakts in samples.
+    #
+    # one more thing, we do the standardization per file here, is that good????
+    #
+    scaler = preprocessing.RobustScaler()
+    eeg1   = (scaler.fit_transform(eeg1.reshape(-1,1))).reshape(-1,)
+    eeg2 = (scaler.fit_transform(eeg2.reshape(-1,1))).reshape(-1,)
+    emg    = (scaler.fit_transform(emg.reshape(-1,1))).reshape(-1,)
+   
+    #X_test  = scaler.transform(X_test.astype(np.float))
+
+    # Feature matrix
+    X = []
+    for i in range(int(epochs)):
+
+        # Get signals of current epoch
+        eeg1_epoch = eeg1[samples_per_epoch * i: samples_per_epoch * (i + 1)]
+        eeg2_epoch = eeg2[samples_per_epoch * i: samples_per_epoch * (i + 1)]
+        emg_epoch  = emg[samples_per_epoch * i: samples_per_epoch * (i + 1)]
+
+        features = eeg1_epoch
+
+        # Stack new sample on top of the main matrix
+        X = np.vstack([X, features]) if np.shape(X)[0] else features
+
+    return X
 
 
 def PCA_features(file_path,interval_size=4,exchange_eeg=False):

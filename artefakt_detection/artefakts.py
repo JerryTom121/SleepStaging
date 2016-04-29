@@ -15,6 +15,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.cross_validation import cross_val_score
 from sklearn.svm import SVC,OneClassSVM
 from sklearn import preprocessing
+from sklearn.decomposition import PCA,FastICA
 # hmm library
 from hmmlearn import hmm
 # signal processing stuff
@@ -55,32 +56,82 @@ distinguish artefakts !!!
 '''
 # Get data based on the current exeperiment
 [X_train,Y_train,X_test,Y_test] = sleeplib.read_data(CSV_FOLDER,EXP_NUM)
+# Scaling
+#scaler = preprocessing.StandardScaler() #scaler = preprocessing.RobustScaler()
+#X_train = scaler.fit_transform(X_train.astype(np.float))
+#X_test  = scaler.transform(X_test.astype(np.float))
 
-# Loging
-'''
-X_train = np.log(X_train)
-X_test  = np.log(X_test)
-'''
+print np.shape(X_train)
+print np.shape(Y_train)
+print np.shape(X_test)
+print np.shape(Y_test)
 
-'''
-plt.plot(X_train[:,1],c='red')
-plt.plot(X_train[:,2],c='green')
-plt.plot(X_train[:,3],c='purple')
-plt.show()
-'''
+print X_train[1002]
 
-'''
-thr = 4
-new_thr = 5.6
-
-before_train = X_train[:,0]
-a = np.zeros(np.shape(X_train))
-a = np.vstack((a,X_test))
-before_test  = a[:,0]
+print 'Exiting............'
+exit()
 '''
 A = X_train
 B = X_test
+X_train = np.zeros((np.shape(X_train)[0],2))
+X_test  = np.zeros((np.shape(X_test)[0],2))
 
+
+ica = FastICA(n_components=2)
+fs = 128.0
+for i in range(np.shape(Y_train)[0]):
+    # get EEGs
+    eeg1 = A[i][0:512]
+    eeg2 = A[i][512:2*512]
+    # Filtering
+    eeg1 = sleeplib.bandpass(eeg1,[1,40],fs)
+    eeg2 = sleeplib.bandpass(eeg2,[1,40],fs)
+    # new features
+    X_train[i][0] = np.max([np.std(eeg1[0:100]),np.std(eeg1[70:170]),np.std(eeg1[150:250]),np.std(eeg1[200:300])\
+                           ,np.std(eeg1[250:350]),np.std(eeg1[300:400]),np.std(eeg1[350:450]),np.std(eeg1[400:512])])
+    X_train[i][1] = np.max([np.std(eeg2[0:100]),np.std(eeg2[70:170]),np.std(eeg2[150:250]),np.std(eeg2[200:300])\
+                           ,np.std(eeg2[250:350]),np.std(eeg2[300:400]),np.std(eeg2[350:450]),np.std(eeg2[400:512])])
+
+    if Y_train[i] == -1:
+
+        plt.subplot(211)
+        plt.plot(eeg1)
+        plt.plot(eeg2)
+        #
+        plt.subplot(212)
+        plt.plot(eeg1)
+        plt.plot(eeg2)
+        #
+        signal = np.c_[eeg1,eeg2]
+        #signal = eeg1.reshape(-1,1)
+        #print np.shape(signal)
+        components = ica.fit_transform(signal)
+        #
+        plt.subplot(212)
+        plt.plot(components[:,0])
+        plt.plot(components[:,1])
+        #plt.plot(components[:,2])
+        # show plot
+        plt.show()
+
+'''
+'''
+for i in range(np.shape(Y_test)[0]):
+    # get EEGs
+    eeg1 = B[i][0:512]
+    eeg2 = B[i][512:2*512]
+    # Filtering
+    eeg1 = sleeplib.bandpass(eeg1,[1,40],fs)
+    eeg2 = sleeplib.bandpass(eeg2,[1,40],fs)
+    # new features
+    X_test[i][0] = np.max([np.std(eeg1[0:100]),np.std(eeg1[70:170]),np.std(eeg1[150:250]),np.std(eeg1[200:300])\
+                           ,np.std(eeg1[250:350]),np.std(eeg1[300:400]),np.std(eeg1[350:450]),np.std(eeg1[400:512])])
+    X_test[i][1] = np.max([np.std(eeg2[0:100]),np.std(eeg2[70:170]),np.std(eeg2[150:250]),np.std(eeg2[200:300])\
+                           ,np.std(eeg2[250:350]),np.std(eeg2[300:400]),np.std(eeg2[350:450]),np.std(eeg2[400:512])])
+
+'''
+
+'''
 eeg1_train = X_train.flatten()
 eeg1_test  = X_test.flatten()
 
@@ -107,73 +158,6 @@ for i in range(k+2,eeg1_test.size-k-2):
     X_test[ind][1] = np.max(np.array([X_test[ind][1],std_dev]))
 
 
-# Scaling
-scaler = preprocessing.StandardScaler()
-#scaler = preprocessing.RobustScaler()
-X_train = scaler.fit_transform(X_train.astype(np.float))
-X_test  = scaler.transform(X_test.astype(np.float))
-'''
-before_thr = scaler.scale_[0]*thr
-c = np.ones(np.shape(a))*before_thr
-plt.plot(before_train,c='red')
-plt.plot(before_test,c='green')
-plt.plot(c,c='black')
-plt.show()
-'''
-
-'''
-# Experiment with threshold
-print "Thresholding from the perspective of training data"
-print "--------------------------------------------------"
-print np.shape(X_train)
-print "There are " + str(np.sum(X_train[:,0]>thr)) +  " samples having EMG amplitude above "+ str(thr) +" threshold"
-print "There are " + str(np.sum(X_train[:,0]<=thr)) + " samples having EMG amplitude under "+ str(thr) +" threshold"
-print "Number of hits is: " + str(np.sum((X_train[:,0]>thr) & (Y_train==-1)))
-print "Number of false hits is: " + str(np.sum((X_train[:,0]>thr) & (Y_train==1)))
-
-print "Thresholding from the perspective of testing data"
-print "--------------------------------------------------"
-print np.shape(X_test)
-print "There are " + str(np.sum(X_test[:,0]>thr)) +  " samples having EMG amplitude above "+ str(thr) +" threshold"
-print "There are " + str(np.sum(X_test[:,0]<=thr)) + " samples having EMG amplitude under "+ str(thr) +" threshold"
-print "Number of hits is: " + str(np.sum((X_test[:,0]>thr) & (Y_test==-1)))
-print "Number of false hits is: " + str(np.sum((X_test[:,0]>thr) & (Y_test==1)))
-'''
-
-'''
-# Graphs before thresholding
-plt.plot(X_train[:,0],c='red')
-a = np.vstack((np.zeros(np.shape(X_train)),X_test))
-plt.plot(a[:,0],c='green')
-c = np.ones(np.shape(a))*thr
-plt.plot(c,c='black')
-c = np.ones(np.shape(a))*new_thr
-plt.plot(c,c='blue')
-plt.show()
-# Graphs after thresholding
-X_train_after = X_train[(X_train[:,0]<thr),:]
-X_test_after = X_test[(X_test[:,0]<new_thr),:]
-#
-plt.plot(X_train_after[:,0],c='red')
-a = np.vstack((np.zeros(np.shape(X_train_after)),X_test_after))
-plt.plot(a[:,0],c='green')
-c = np.ones(np.shape(a))*thr
-plt.plot(c,c='black')
-c = np.ones(np.shape(a))*new_thr
-plt.plot(c,c='blue')
-plt.show()
-'''
-'''
-print np.shape(X_train)
-print np.sum(Y_train==1)
-print np.sum(Y_train==-1)
-print np.shape(X_test)
-print np.sum(Y_test==1)
-print np.sum(Y_test==-1)
-
-plt.plot(Y_train,c='green')
-plt.plot(Y_test+4,c='red')
-plt.show()
 '''
 
 '''
@@ -224,7 +208,7 @@ for i in range(np.shape(B)[0]):
 '''
 
 # Method to use for classification
-one_class_artefakt_detection = False
+one_class_artefakt_detection = True
 Markov = False
 
 if one_class_artefakt_detection==False: 
@@ -285,8 +269,10 @@ else:
     o2 = plt.scatter(X_test_outliers[:, 0], X_test_outliers[:, 1], c='purple')
 
     plt.axis('tight')
-    plt.xlim((-14, 14))
-    plt.ylim((-14, 14))
+    #plt.xlim((-14, 14))
+    #plt.ylim((-14, 14))
+    plt.xlim((-300, 300))
+    plt.ylim((-300, 300))
     plt.legend([a.collections[0], h1, h2, o1, o2],
                ["learned frontier", "healthy training observations",
                 "healthy test observations", "abnormal training observations",
