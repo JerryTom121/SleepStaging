@@ -33,8 +33,7 @@ np.set_printoptions(precision=3)
 # --------------------------------------------------------------------------- #
 # ---------------------- User Defined Constants ----------------------------- #
 # --------------------------------------------------------------------------- #
-CSV_FOLDER = \
-'/home/djordje/Desktop/CSVData/'   # Folder where all CSV data is kept:abs path
+CSV_FOLDER = '/home/djordje/Desktop/CSVdata/'   # Folder where all CSV data is kept:abs path
 WAKE = 0; NREM = 1; REM  = 2;      # Encoding of main sleeping stages
 WART = 3; NART = 4; RART = 5;      # Encoding of artefakts
 STAGES = [WAKE,NREM,REM,WART,NART,RART];
@@ -57,19 +56,23 @@ distinguish artefakts !!!
 # Get data based on the current exeperiment
 [X_train,Y_train,X_test,Y_test] = sleeplib.read_data(CSV_FOLDER,EXP_NUM)
 # Scaling
-#scaler = preprocessing.StandardScaler() #scaler = preprocessing.RobustScaler()
-#X_train = scaler.fit_transform(X_train.astype(np.float))
-#X_test  = scaler.transform(X_test.astype(np.float))
+scaler = preprocessing.StandardScaler() #scaler = preprocessing.RobustScaler()
+X_train = scaler.fit_transform(X_train.astype(np.float))
+X_test  = scaler.transform(X_test.astype(np.float))
 
+print "-----------------------------------------------------"
+print "The dimensions of training feature and label data are:"
 print np.shape(X_train)
 print np.shape(Y_train)
+print "number of artefakts is: " + str(np.count_nonzero(Y_train[Y_train==-1]))
+print "-----------------------------------------------------"
+print "The dimensions of testing feature and label data are:"
 print np.shape(X_test)
 print np.shape(Y_test)
+print "number of artefakts is: " + str(np.count_nonzero(Y_test[Y_test==-1]))
 
-print X_train[1002]
-
-print 'Exiting............'
-exit()
+#print 'Exiting............'
+#exit()
 '''
 A = X_train
 B = X_test
@@ -256,6 +259,8 @@ else:
 
     xx, yy = np.meshgrid(np.linspace(-15, 15, 500), np.linspace(-15, 15, 500))
     # plot the line, the points, and the nearest vectors to the plane
+    print np.shape(xx.ravel())
+    print np.shape(yy.ravel())
     Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
     plt.title("Novelty Detection")

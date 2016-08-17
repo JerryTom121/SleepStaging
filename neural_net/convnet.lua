@@ -29,37 +29,36 @@ net:add(nn.LogSoftMax())
 --]]
 
 DEBUG = false
-maxIterations = 20
+maxIterations = 4
 learningRate  = 0.001
-signalLenght  = 128
 -- layer 1
-L1_fm_in  = 1 -- number of input feature maps
-L1_fm_out = 1 -- number of output feature maps = number of different kernels
-L1_kernel = 5 -- kernel size
-L1_stride = 1 -- stride length
+L1_fm_in  = 1  -- number of input feature maps
+L1_fm_out = 10  -- number of output feature maps = number of different kernels
+L1_kernel = 10 -- kernel size
+L1_stride = 1  -- stride length
+-- layer 2
+L2_fm_in  = L1_fm_out
+L2_fm_out = 1
+L2_kernel = 10
+L2_stride = 1
 
-
-
+-- Add Layer 0
+signalLenght   = 128
+numFeatureMaps = 1
 net = nn.Sequential()
---net:add(nn.View(128,1))
+-- Add Layer 1
 net:add(nn.TemporalConvolution(L1_fm_in, L1_fm_out, L1_kernel, L1_stride))
---net:add(nn.Linear(128,L1_out*125))
-net:add(nn.ReLU())        
---[Debug:out-dim] print(net:forward(torch.rand(128,1)):size())
-
---[[
-net:add(nn.SpatialMaxPooling(2,2,2,2))     -- A max-pooling operation that looks at 2x2 windows and finds the max.
-net:add(nn.SpatialConvolution(6, 16, 5, 5))
-net:add(nn.ReLU())                       -- non-linearity 
-net:add(nn.SpatialMaxPooling(2,2,2,2))
-net:add(nn.View(16*5*5))                    -- reshapes from a 3D tensor of 16x5x5 into 1D tensor of 16*5*5
-net:add(nn.Linear(16*5*5, 120))             -- fully connected layer (matrix multiplication between input and weights)
-net:add(nn.ReLU())                       -- non-linearity 
-net:add(nn.Linear(120, 84))
-net:add(nn.ReLU())                       -- non-linearity 
---]]
-net:add(nn.View(L1_fm_out*(signalLenght-L1_kernel)/L1_stride+1))
-net:add(nn.Linear(L1_fm_out*(signalLenght-L1_kernel)/L1_stride+1, 1))
+net:add(nn.ReLU()) 
+signalLenght   = (signalLenght-L1_kernel)/L1_stride+1 
+numFeatureMaps = L1_fm_out
+-- Add Layer 2
+net:add(nn.TemporalConvolution(L2_fm_in, L2_fm_out, L2_kernel, L2_stride))
+net:add(nn.ReLU())
+signalLenght   = (signalLenght-L2_kernel)/L2_stride+1 
+numFeatureMaps = L2_fm_out
+-- Add Layer 3
+net:add(nn.View(numFeatureMaps*signalLenght))
+net:add(nn.Linear(numFeatureMaps*signalLenght, 1))
 
 
 --print(net:forward(torch.rand(128,1)):size()) --[DEBUG]
@@ -114,8 +113,8 @@ MSRinit(net)
 
 
 
--- Load training and testing data sets 
--- from .CSV files of selected experiment
+-- Load training and testing data sets from .CSV files of selected experiment
+-----------------------------------------------------------------------------
 local trainSet = {}
 local testSet  = {}
 local trainCSV  = torch.Tensor(csvigo.load{path='/home/djordje/Desktop/CSVData/train_exp10.csv',mode='raw'})
@@ -123,19 +122,15 @@ local testCSV   = torch.Tensor(csvigo.load{path='/home/djordje/Desktop/CSVData/t
 local numFeatures      = trainCSV:size(2)-2
 local numTrainSamples  = trainCSV:size(1)
 local numTestSamples   = testCSV:size(1)
--- Create data sets by discarding first 
--- column and using the last one as labels
-a = trainCSV[{{},{2,trainCSV:size(2)-1}}]
+-- Create data sets by discarding first column and using the last one as labels
 trainSet.data  = trainCSV[{{},{2,trainCSV:size(2)-1}}]
 trainSet.label = trainCSV[{{},{trainCSV:size(2)}}]
 testSet.data   = testCSV[{{},{2,testCSV:size(2)-1}}]
 testSet.label  = testCSV[{{},{testCSV:size(2)}}]
--- Reshape data sets to fit the convolutional 
--- network architecture
+-- Reshape data sets to fit the convolutional  network architecture
 trainSet.data = torch.reshape(trainSet.data,numTrainSamples,numFeatures,1)
-testSet.data  = torch.reshape(testSet.data,numTrainSamples,numFeatures,1)
--- Some preparation for training of
--- our convolutional neural network
+testSet.data  = torch.reshape(testSet.data,numTestSamples,numFeatures,1)
+-- Some other preparation for training of our convolutional neural network
 trainSet.data = trainSet.data:double() -- convert the data from a ByteTensor to a DoubleTensor.
 testSet.data  = testSet.data:double()  -- convert from Byte tensor to Double tensor
 setmetatable(trainSet, 
@@ -149,35 +144,8 @@ end
 
 
 
---[[
---
--- Extra Preprocessing
---
-mean = {} -- store the mean, to normalize the test set in the future
-stdv  = {} -- store the standard-deviation for the future
-
-mean = trainSet.data[{ {}, {}, {} }]:mean() -- mean estimation
-print('Mean: ' .. mean)
-trainSet.data[{ {}, {}, {} }]:add(-mean) -- mean subtraction
-testSet.data[{ {}, {}, {} }]:add(-mean) -- mean subtraction
-
-stdv = trainSet.data[{ {}, {}, {} }]:std() -- std estimation
-print('Standard Deviation: ' .. stdv)
-trainSet.data[{ {}, {}, {} }]:div(stdv) -- std scaling
-testSet.data[{ {}, {}, {} }]:div(stdv) -- std scaling
-
---]]
-
-
-
-
-
-
-
-
-
--- Setup the tranining parameters for
--- our neural network
+-- Setup the tranining parameters for our neural network
+--------------------------------------------------------
 criterion = nn.SoftMarginCriterion()
 trainer = nn.StochasticGradient(net, criterion)
 trainer.learningRate = learningRate
@@ -296,9 +264,39 @@ print('---------------------------------')
 torch.save('models/minet', net)
 
 
+print "------------------------------"
+print "Training set artefakt detection"
+local hits = 0
+local fp = 0
+local fn = 0
+for i=1,trainCSV:size(1) do
+    local groundtruth = trainSet.label[i]
+    local prediction = net:forward(trainSet.data[i])
+   
+    -- artefakt
+    if groundtruth[1]==-1 then
+    	-- detected
+    	if prediction[1]<0 then
+        	hits = hits + 1
+        -- not detected
+        else
+        	fn = fn + 1
+        end
+    else
+    	-- false positive
+    	if prediction[1]<0 then
+    		fp = fp + 1
+    	end
+    end
+end
 
+print(hits)
+print(fp)
+print(fn)
+print "------------------------------"
 
-
+print "------------------------------"
+print "Testing set artefakt detection"
 local hits = 0
 local fp = 0
 local fn = 0
@@ -326,3 +324,4 @@ end
 print(hits)
 print(fp)
 print(fn)
+print "------------------------------"

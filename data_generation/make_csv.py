@@ -21,7 +21,7 @@ on a different computer (folders)
 or with different data set (interval)!!!!!
 """
 DATA_FOLDER   = '/home/djordje/Desktop/EEGData/'
-CSV_FOLDER    = '/home/djordje/Desktop/CSVData/'
+CSV_FOLDER    = '/home/djordje/Desktop/CSVdata/'
 INTERVAL      = 4
 """
 These are changed according to
@@ -270,6 +270,192 @@ eeg_exchange_training[10] = False;
 eeg_exchange_test[10]     = False;
 artefakt_removal[10]      = False;
 feature_extractor_id[10] = 'imaging'
+"""
+-----------
+Experiment11: Deep Learning artefakt rejection!
+-----------  
+"""         
+''
+split_exp[11]          = False
+split_random[11]       = False
+training_set_exp[11]   = ['EEGDataPool/CM/GABRA/WT/GAB2R26']
+testing_set_exp[11]    = ['EEGDataPool/CM/GABRA/WT/GAB2R22']
+
+mapping_exp[11] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+};
+eeg_exchange_training[11] = False;
+eeg_exchange_test[11]     = False;
+artefakt_removal[11]      = False;
+feature_extractor_id[11] = 'raw'
+"""
+-----------
+Experiment12: Deep Learning artefakt rejection!
+-----------  
+"""         
+''
+split_exp[12]          = False
+split_random[12]       = False
+training_set_exp[12]   = ['EEGDataPool/CM/GABRA/WT/GAB2R28']
+testing_set_exp[12]    = ['EEGDataPool/CM/GABRA/WT/GAB2R26']
+
+
+mapping_exp[12] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+};
+eeg_exchange_training[12] = False;
+eeg_exchange_test[12]     = False;
+artefakt_removal[12]      = False;
+feature_extractor_id[12] = 'imaging'
+"""
+-----------
+Experiment13: Deep Learning artefakt rejection!
+-----------  
+"""         
+''
+split_exp[13]          = True
+split_random[13]       = True
+training_set_exp[13]   = ['EEGDataPool/CM/GABRA/WT/GAB2R22','EEGDataPool/CM/GABRA/WT/GAB2R26','EEGDataPool/CM/GABRA/WT/GAB2R28']
+testing_set_exp[13]    = []
+
+
+mapping_exp[13] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+};
+eeg_exchange_training[13] = False;
+eeg_exchange_test[13]     = False;
+artefakt_removal[13]      = False;
+feature_extractor_id[13] = 'imaging'
+
+"""
+-----------
+Experiment1: Double Scored Wild Type data:
+-----------  -----------------------------  
+"""                                        # random split and shuffling
+                                           # only one channel used (EEG1)
+                                           # EEG1-frontal, EEG2-parietal
+''
+split_exp[1]          = True
+split_random[1]       = True
+training_set_exp[1]   = ['DoubleScored/WildTypes/Intersection/']
+testing_set_exp[1]    = []
+
+
+mapping_exp[1] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+    'a': -1, # ????
+};
+eeg_exchange_training[1] = False;
+eeg_exchange_test[1]     = False;
+artefakt_removal[1]      = False;
+feature_extractor_id[1] = 'imaging'
+
+"""
+-----------
+Experiment2: Double Scored Wild Type data:
+-----------  -----------------------------  
+"""                                        # random split and shuffling
+                                           # All channels used !!!
+                                           # EEG1-frontal, EEG2-parietal
+''
+split_exp[2]          = True
+split_random[2]       = True
+training_set_exp[2]   = ['DoubleScored/WildTypes/Intersection/']
+testing_set_exp[2]    = []
+
+
+mapping_exp[2] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+    'a': -1, # ????
+};
+eeg_exchange_training[2] = False;
+eeg_exchange_test[2]     = False;
+artefakt_removal[2]      = False;
+feature_extractor_id[2] = 'full_imaging'
+
+"""
+-----------
+Experiment3: Double Scored Wild Type data:
+-----------  -----------------------------  
+"""                                        # random split and shuffling
+                                           # All channels used !!!
+                                           # EEG1-frontal, EEG2-parietal
+                                           # Instead of working with temporal signals, 
+                                           # here we try to work with FOURIER signals
+''
+split_exp[3]          = True
+split_random[3]       = True
+training_set_exp[3]   = ['DoubleScored/WildTypes/Intersection/']
+testing_set_exp[3]    = []
+
+
+mapping_exp[3] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+    'a': -1, # ????
+};
+eeg_exchange_training[3] = False;
+eeg_exchange_test[3]     = False;
+artefakt_removal[3]      = False;
+feature_extractor_id[3] = 'full_fourier'
+
+"""
+-----------
+Experiment4: Double Scored Mutant data:
+-----------  -----------------------------  
+"""                                        # random split and shuffling
+                                           # All channels used !!!
+                                           # EEG1-frontal, EEG2-parietal
+''
+split_exp[4]          = True
+split_random[4]       = True
+training_set_exp[4]   = ['DoubleScored/Mutants/Intersection/']#['DoubleScored/Mutants/Intersection/AS52C']
+testing_set_exp[4]    = []
+
+
+mapping_exp[4] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+    'a': -1, # ????
+    "'": -1, # ????
+};
+eeg_exchange_training[4] = False;
+eeg_exchange_test[4]     = False;
+artefakt_removal[4]      = False;
+feature_extractor_id[4] = 'full_imaging'
 
 
 # --------------------------------------------------------------------------- #
@@ -330,6 +516,7 @@ idx_Xv = np.linspace(1 + len(Xt), len(Xt) + len(Xv), len(Xv)).astype(np.int);
 
 Xt = np.c_[idx_Xt, Xt];
 Xv = np.c_[idx_Xv, Xv];
+
 
 np.savetxt(CSV_FOLDER+'train_exp'+str(EXP_NUM)+'.csv', np.c_[Xt, Yt.astype(np.int)], fmt='%f', delimiter=',')
 #np.savetxt(CSV_FOLDER+'test_exp'+str(EXP_NUM)+'.csv', Xv, fmt='%f', delimiter=',')
