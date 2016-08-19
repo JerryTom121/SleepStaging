@@ -1,2 +1,4 @@
-"binart.lua" - Contains the main network where all the relevant calculations are done.
+
+Detection of anomalies in EEG and EMG signals.
+
 
