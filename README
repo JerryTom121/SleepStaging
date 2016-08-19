@@ -1,4 +1,6 @@
 
 Detection of anomalies in EEG and EMG signals.
+----------------------------------------------
 
+"deepnet" folder: Contains neural network models and corresponding libraries used for binary classification for artifact and non-artifact data.
 
