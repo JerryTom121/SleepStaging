@@ -458,6 +458,125 @@ artefakt_removal[4]      = False;
 feature_extractor_id[4] = 'full_imaging'
 
 
+"""
+-----------
+Experiment5: Double Scored Wild Type data:
+-----------  -----------------------------  
+"""                                        # EXPERIMENT FOR GENERATING ERROR STATISTICS
+                                           # random split and shuffling, but we maintain the indices of samples
+                                           # All channels used !!!
+                                           # EEG1-frontal, EEG2-parietal
+''
+split_exp[5]          = True
+split_random[5]       = True
+training_set_exp[5]   = ['DoubleScored/WildTypes/Intersection/']
+testing_set_exp[5]    = []
+
+
+mapping_exp[5] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+    'a': -1, # ????
+    "'": -1,
+    '4': -1
+};
+eeg_exchange_training[5] = False;
+eeg_exchange_test[5]     = False;
+artefakt_removal[5]      = False;
+feature_extractor_id[5] = 'full_imaging'
+
+"""
+-----------
+Experiment6: Double Scored Mutant data:
+-----------  -----------------------------  
+"""                                        # EXPERIMENT FOR GENERATING ERROR STATISTICS
+                                           # random split and shuffling, but we maintain the indices of samples
+                                           # All channels used !!!
+                                           # EEG1-frontal, EEG2-parietal
+''
+split_exp[6]          = True
+split_random[6]       = True
+training_set_exp[6]   = ['DoubleScored/Mutants/Intersection/']
+testing_set_exp[6]    = []
+
+
+mapping_exp[6] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+    'a': -1, # ????
+    "'": -1,
+    '4': -1
+};
+eeg_exchange_training[6] = False;
+eeg_exchange_test[6]     = False;
+artefakt_removal[6]      = False;
+feature_extractor_id[6] = 'full_imaging'
+
+"""
+-----------
+Experiment7: Double Scored Mutant + WildType data:
+-----------  -------------------------------------
+"""                                        
+
+split_exp[7]          = True
+split_random[7]       = True
+training_set_exp[7]   = ['DoubleScored/WildTypes/Intersection/','DoubleScored/Mutants/Intersection/']
+testing_set_exp[7]    = []
+
+
+mapping_exp[7] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+    'a': -1, # ????
+    "'": -1,
+    '4': -1
+};
+eeg_exchange_training[7] = False;
+eeg_exchange_test[7]     = False;
+artefakt_removal[7]      = False;
+feature_extractor_id[7] = 'full_imaging'
+
+"""
+-----------
+Experiment8: Double Scored WildType to train ====> Double Scored Mutants to test
+-----------  --------------------------------------------------------------------
+"""                                        
+
+split_exp[8]          = False
+split_random[8]       = False
+training_set_exp[8]   = ['DoubleScored/WildTypes/Intersection/']
+testing_set_exp[8]    = ['DoubleScored/Mutants/Intersection/']
+
+
+mapping_exp[8] = {
+    'w': +1,
+    'n': +1,
+    'r': +1,
+    '1': -1, # Wake artefakt
+    '2': -1, # NREM artefakt
+    '3': -1, # REM  artefakt
+    'a': -1, # ????
+    "'": -1,
+    '4': -1
+};
+eeg_exchange_training[8] = False;
+eeg_exchange_test[8]     = False;
+artefakt_removal[8]      = False;
+feature_extractor_id[8] = 'full_imaging'
+
+
 # --------------------------------------------------------------------------- #
 # ------ Parametrize script based on the selected experiment ---------------- #
 # ----------------- and extract features and labels ------------------------- #
@@ -495,6 +614,7 @@ if split:
     else:
         print "random split"
         Xt, Xv, Yt, Yv = train_test_split(features, labels, test_size=0.25, random_state=42)
+
 else:
     '''
     In case we have a separate
@@ -510,15 +630,20 @@ else:
         [Xt,Yt] = remove_artefakts(Xt,Yt)
         [Xv,Yv] = remove_artefakts(Xv,Yv)
 
+'''
+Special!
+'''
+# PAY ATTENTION !!! Allow only one column fo training data
+Yt = Yt[:,0]
+
 # Adding the id-column to the data
 idx_Xt = np.linspace(1, len(Xt), len(Xt)).astype(np.int);
 idx_Xv = np.linspace(1 + len(Xt), len(Xt) + len(Xv), len(Xv)).astype(np.int);
 
+# Concatenate
 Xt = np.c_[idx_Xt, Xt];
 Xv = np.c_[idx_Xv, Xv];
 
-
+# Save data
 np.savetxt(CSV_FOLDER+'train_exp'+str(EXP_NUM)+'.csv', np.c_[Xt, Yt.astype(np.int)], fmt='%f', delimiter=',')
-#np.savetxt(CSV_FOLDER+'test_exp'+str(EXP_NUM)+'.csv', Xv, fmt='%f', delimiter=',')
-#np.savetxt(CSV_FOLDER+'solution_exp'+str(EXP_NUM)+'.csv', np.r_[[['Id','Label']], np.c_[idx_Xv, Yv]], fmt='%s', delimiter=',')
 np.savetxt(CSV_FOLDER+'test_exp' +str(EXP_NUM)+'.csv', np.c_[Xv, Yv.astype(np.int)], fmt='%f', delimiter=',')

@@ -1,5 +1,5 @@
 % User Defined Variable - watch out, these are coupled !!!
-EXP = '4';
+EXP = '8';
 ROTATION = 1;
 MIRROR   = 1;
 % experiment info
@@ -21,7 +21,6 @@ size(artmat)
 % ----------------------------------------------------------------------- %
 % ------------------------ DATA AUGMENTATION ---------------------------- %
 % ----------------------------------------------------------------------- %
-
 % augment artefakt matrix by mirroring
 if MIRROR
     % create X mirrored artefakt matrix
