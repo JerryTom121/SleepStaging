@@ -1,2 +1,2 @@
-binart.lua - Contains the main network where all the relevant calculations are done.
+binart.lua: BINary ARTifact classification. Contains the main network where all the relevant calculations are done. We classify epochs to artifact and non-artifact data.
 
