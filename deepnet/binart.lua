@@ -19,7 +19,6 @@ signal_length = 128
 -- the sample is artifact, we have some extra information such as e.g. neighbour labels
 nlabels = 4
 
-
 -----------------------
 -- Experiment variables
 -----------------------
@@ -29,9 +28,6 @@ RETRAIN 	 = false
 exp 		 = '5'
 -- The augmentation type of the selected experiment
 aug 		 = '_rot_mir'
-
-
-
 
 --------------------------
 -- Architectural variables
@@ -50,8 +46,6 @@ l1_stride_size  = 1
 l2_feature_maps = 12
 l2_kernel_size  = 10
 l2_stride_size   = 1
-
-
 
 ------------------------------
 -- Neural network architecture
@@ -77,8 +71,6 @@ signal_length   = (signal_length-l2_kernel_size)/l2_stride_size + 1
 net:add(nn.View(l2_feature_maps*signal_length))
 net:add(nn.Linear(l2_feature_maps*signal_length, 1))
 
-
-
 ----------------------------------------
 -- Neural network optimization procedure
 ----------------------------------------
@@ -86,8 +78,6 @@ criterion = nn.SoftMarginCriterion()
 trainer = nn.StochasticGradient(net,criterion)
 trainer.learningRate = learning_rate
 trainer.maxIteration = max_iterations
-
-
 
 ------------------------------------
 ---------------- DEBUG -------------
@@ -106,15 +96,11 @@ print("Learning rate: "..learning_rate)
 print("Layer 1 (feature maps,kernel): "..l1_feature_maps,l1_kernel_size)
 print("Layer 2 (feature maps,kernel): "..l2_feature_maps,l2_kernel_size)
 
-
-
 ----------------------------------------------------------------------------
 -- Load training and testing data sets from .CSV files of selected experiment
 -----------------------------------------------------------------------------
 train_set = inout.load_dataset('../CSV/train_exp'..exp..aug..'.csv',nchannels,1)
 test_set  = inout.load_dataset('../CSV/test_exp'..exp..'.csv',nchannels,nlabels)
-
-
 
 ------------------------------------
 -------------- DEBUG ---------------
