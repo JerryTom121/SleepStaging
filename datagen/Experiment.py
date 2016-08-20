@@ -17,7 +17,7 @@ class Experiment(object):
         # Initialize some global variables
         self.eeg_folder = config.get('Global', 'EEG_Folder')
         self.csv_folder = config.get('Global', 'CSV_Folder')
-        self.interval   = config.get('Global', 'Interval')
+        self.interval   = int(config.get('Global', 'Interval'))
 
         # Initialize experiment parameters
         self.split    = config.get('Experiment'+exp_num, 'split')=='True'

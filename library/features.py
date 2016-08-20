@@ -149,7 +149,6 @@ def raw_signal_features(file_path,interval_size=4,exchange_eeg=False, ds_factor=
     interval_size: How many seconds does each epoch last
     exchange_eeg:  Swap EEG1 and EEG2 signal
     '''
-    
     # Get Raw Data and Sampling Characteristics
     data              = load_edf(file_path)
     sample_rate       = data.sample_rate

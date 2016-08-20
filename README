@@ -4,4 +4,10 @@ Detection of anomalies in EEG and EMG signals.
 
 "deepnet" folder: Contains neural network models and corresponding libraries used for binary classification for artifact and non-artifact data.
 
+"clasifiers" folder: Contains some non-deep classifiers which can be applied either for sleep staging or artifact detection.
+
 "datagen" folder: Contains all the scripts needed for generating .csv files from raw data. The scripts enable feature extraction and generation of training and testing/validation data.
+
+"library" folder: Contains some utility functions, such as different feature extractors.
+
+
