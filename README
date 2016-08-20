@@ -1,6 +1,6 @@
 
-Detection of anomalies in EEG and EMG signals.
-----------------------------------------------
+Detection of anomalies and sleep staging via EEG and EMG signals.
+-----------------------------------------------------------------
 
 "deepnet" folder: Contains neural network models and corresponding libraries used for binary classification for artifact and non-artifact data.
 
