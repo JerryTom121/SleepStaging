@@ -45,11 +45,12 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
 
     # Select feature extractor
     feature_extractors = {
+      'raw_signal': raw_signal_features,
+
       'fourier': fourier_features,
       'statistical': statistical_features,
       'hybrid': hybrid_features,
       'imaging': imaging_features,
-      'full_imaging': full_imaging_features,
       'full_fourier': full_fourier_features,
       'raw': raw_features,
     }
@@ -63,12 +64,12 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
     for file_set in file_sets:
         # For each file set
         [file_folder,file_id] = str.rsplit(file_set,'/',1)
-
         for f in os.listdir(data_folder+file_folder):
             if '.edf' in f and file_id in f:
                 # For each valid .edf file
                 
                 # Debug output
+                print "--------------------------------------------------"
                 print "File "+f+" is now being processed..."
 
                 # Feature extraction
@@ -93,7 +94,7 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
                 print "Number of artifacts is: " + str(np.count_nonzero(tmp[tmp=='-1']))
                 
                 # Debug
-                print file_labels
+                # print file_labels
 
                 # derive neighbourhood label
                 file_labels = np.hstack((file_labels,np.zeros(nlabels).reshape(nlabels,1))) # add extra column
@@ -118,7 +119,7 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
                             file_labels[i][j] ="2"
 
                 # Debug
-                print file_labels
+                # print file_labels
 
                 # Accumulating features and labels
                 features = np.vstack([features, file_features]) if np.shape(features)[0] else file_features
@@ -133,8 +134,68 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
     return [features,labels]
 
 
+# ----------------------------------------------------------------------------------------------- #
+# ------------------------------ FEATURE -------------------------------------------------------- #
+# ------------------------------ EXTRACTORS ----------------------------------------------------- #
+# ----------------------------------------------------------------------------------------------- #
 
 
+def raw_signal_features(file_path,interval_size=4,exchange_eeg=False, ds_factor=4):
+    '''
+    Function which extracts imaging features from a given file.
+    The extracted features should be used as an input of convolutional network.
+
+    file_path:     Path to the .edf file
+    interval_size: How many seconds does each epoch last
+    exchange_eeg:  Swap EEG1 and EEG2 signal
+    '''
+    
+    # Get Raw Data and Sampling Characteristics
+    data              = load_edf(file_path)
+    sample_rate       = data.sample_rate
+    samples_per_epoch = interval_size * sample_rate
+    eeg1 = data.X[data.chan_lab.index('EEG1')]
+    eeg2 = data.X[data.chan_lab.index('EEG2')]
+    emg  = data.X[data.chan_lab.index('EMG')]
+    total_size = len(eeg1)
+    epochs = total_size / samples_per_epoch
+
+
+    # Downsampling to reduce signal lenghts
+    eeg1 = scipy.signal.decimate(eeg1,ds_factor)
+    eeg2 = scipy.signal.decimate(eeg2,ds_factor)
+    emg  = scipy.signal.decimate(emg,ds_factor)
+    samples_per_epoch = samples_per_epoch/ds_factor
+
+    # Standardize EEG/EMG signals. This is very important and so far I have a very simple 
+    # standardization method. I should find one which does not depend on the sleep state distribution, 
+    # or number of artefakts in samples.
+    #
+    # one more thing, we do the standardization per file here, is that good????
+    #
+    scaler = preprocessing.RobustScaler()
+    eeg1   = (scaler.fit_transform(eeg1.reshape(-1,1))).reshape(-1,)
+    eeg2   = (scaler.fit_transform(eeg2.reshape(-1,1))).reshape(-1,)
+    emg    = (scaler.fit_transform(emg.reshape(-1,1))).reshape(-1,)
+   
+    # Feature matrix
+    X = []
+    for i in range(int(epochs)):
+        
+        # Get signals of current epoch
+        eeg1_epoch = eeg1[int(samples_per_epoch) * i: int(samples_per_epoch) * (i + 1)]
+        eeg2_epoch = eeg2[int(samples_per_epoch) * i: int(samples_per_epoch) * (i + 1)]
+        emg_epoch  = emg[int(samples_per_epoch)  * i: int(samples_per_epoch) * (i + 1)]
+
+        features = np.stack( (eeg1_epoch,eeg2_epoch,emg_epoch), 0).flatten();
+
+        X = np.vstack([X, features]) if np.shape(X)[0] else features
+
+    return X
+
+# ----------------------------------------------------------------------------------------------- #
+# ----------------------------------------------------------------------------------------------- #
+# ----------------------------------------------------------------------------------------------- #
 
 
 
@@ -507,64 +568,6 @@ def imaging_features(file_path,interval_size=4,exchange_eeg=False, ds_factor=4):
 
         features = eeg1_epoch
 
-        # Stack new sample on top of the main matrix
-        X = np.vstack([X, features]) if np.shape(X)[0] else features
-
-    return X
-
-def full_imaging_features(file_path,interval_size=4,exchange_eeg=False, ds_factor=4):
-    '''
-    Function which extracts imaging features from a given file.
-    The extracted features should be used as an input of convolutional network.
-
-    file_path:     Path to the .edf file
-    interval_size: How many seconds does each epoch last
-    exchange_eeg:  Swap EEG1 and EEG2 signal
-    '''
-    
-    # Get Raw Data and Sampling Characteristics
-    data              = load_edf(file_path)
-    sample_rate       = data.sample_rate
-    samples_per_epoch = interval_size * sample_rate
-    eeg1 = data.X[data.chan_lab.index('EEG1')]
-    eeg2 = data.X[data.chan_lab.index('EEG2')]
-    emg  = data.X[data.chan_lab.index('EMG')]
-    total_size = len(eeg1)
-    epochs = total_size / samples_per_epoch
-
-
-    # Downsampling to reduce signal lenghts
-    eeg1 = scipy.signal.decimate(eeg1,ds_factor)
-    eeg2 = scipy.signal.decimate(eeg2,ds_factor)
-    emg  = scipy.signal.decimate(emg,ds_factor)
-    samples_per_epoch = samples_per_epoch/ds_factor
-
-    # Standardize EEG/EMG signals. This is very important and so far I have a very simple 
-    # standardization method. I should find one which does not depend on the sleep state distribution, 
-    # or number of artefakts in samples.
-    #
-    # one more thing, we do the standardization per file here, is that good????
-    #
-    scaler = preprocessing.RobustScaler()
-    eeg1   = (scaler.fit_transform(eeg1.reshape(-1,1))).reshape(-1,)
-    eeg2   = (scaler.fit_transform(eeg2.reshape(-1,1))).reshape(-1,)
-    emg    = (scaler.fit_transform(emg.reshape(-1,1))).reshape(-1,)
-   
-    #X_test  = scaler.transform(X_test.astype(np.float))
-
-    # Feature matrix
-    X = []
-    for i in range(int(epochs)):
-        # Get signals of current epoch
-        eeg1_epoch = eeg1[samples_per_epoch * i: samples_per_epoch * (i + 1)]
-        eeg2_epoch = eeg2[samples_per_epoch * i: samples_per_epoch * (i + 1)]
-        emg_epoch  = emg[samples_per_epoch * i: samples_per_epoch * (i + 1)]
-
-        #print eeg1_epoch
-        #print emg_epoch
-        features = np.stack( (eeg1_epoch,eeg2_epoch,emg_epoch), 0).flatten();
-        #print features
-        #print np.shape(features)
         # Stack new sample on top of the main matrix
         X = np.vstack([X, features]) if np.shape(X)[0] else features
 
