@@ -99,8 +99,8 @@ print("Layer 2 (feature maps,kernel): "..l2_feature_maps,l2_kernel_size)
 ----------------------------------------------------------------------------
 -- Load training and testing data sets from .CSV files of selected experiment
 -----------------------------------------------------------------------------
-train_set = inout.load_dataset('../CSV/train_exp'..exp..aug..'.csv',nchannels,1)
-test_set  = inout.load_dataset('../CSV/test_exp'..exp..'.csv',nchannels,nlabels)
+train_set = inout.load_dataset('../../CSV/train_exp'..exp..aug..'.csv',nchannels,1)
+test_set  = inout.load_dataset('../../CSV/test_exp'..exp..'.csv',nchannels,nlabels)
 
 ------------------------------------
 -------------- DEBUG ---------------
