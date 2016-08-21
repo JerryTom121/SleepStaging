@@ -61,11 +61,11 @@ def find_intersection(root_folder,raters,files):
 
 		# intersect labels
 		for i in range(np.shape(labels)[0]):
-			if (labels[i][2] in ARTIFACTS) and (labels[i][3] in ARTIFACTS): labels[i][1] = -1 # artifact
-			else: 															labels[i][1] = +1 # non-artifact
+			if (labels[i][2] in ARTIFACTS) and (labels[i][3] in ARTIFACTS): labels[i][1] = 'a' # artifact
+			else: 															labels[i][1] = 'r' # non-artifact
 
 		# DEBUG
-		print_stats("Intersection",labels,['-1'])
+		print_stats("Intersection",labels,['a'])
 		print labels
 		
 		# save intersected labels

@@ -1,5 +1,5 @@
 % User Defined Variable - watch out, these are coupled !!!
-EXP = '8';
+EXP = '1';
 ROTATION = 1;
 MIRROR   = 1;
 % experiment info
