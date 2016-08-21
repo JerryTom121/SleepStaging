@@ -1,11 +1,8 @@
 """
-Data Preparation. Based on the designed experiment, 
-the script stacks features and labels, and then writes them 
-into .csv files which are then used for learning and validation.
-.csv files get their names based on the experiment number.
+Data Preparation. Based on the designed experiment, the script stacks features and labels, and then writes them 
+into .csv files which are then used for learning and validation;.csv files get their names based on the experiment number.
 
-@argument num_exp the script takes the number of experiment to 
-be evaluated as command line argument
+@param num_exp the script takes the number of experiment to be evaluated as command line argument
 
 """
 import numpy as np
@@ -83,5 +80,5 @@ Xt = np.c_[idx_Xt, Xt];
 Xv = np.c_[idx_Xv, Xv];
 
 # Save data
-np.savetxt(Exp.csv_folder+'train_exp'+str(sys.argv[1])+'.csv', np.c_[Xt, Yt.astype(np.int)], fmt='%f', delimiter=',')
-np.savetxt(Exp.csv_folder+'test_exp' +str(sys.argv[1])+'.csv', np.c_[Xv, Yv.astype(np.int)], fmt='%f', delimiter=',')
+np.savetxt(Exp.csv_folder+'train_exp'+str(sys.argv[1])+'.csv', np.c_[Xt, Yt], fmt='%s', delimiter=',')
+np.savetxt(Exp.csv_folder+'test_exp' +str(sys.argv[1])+'.csv', np.c_[Xv, Yv], fmt='%s', delimiter=',')

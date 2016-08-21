@@ -86,40 +86,14 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
                 # Extract labels
                 file_labels   = raw_labels[:,1:].copy()
                 for i in range(nlabels):
-                    for j in range(np.shape(file_labels)[1]):
-                        file_labels[i,j] = mapping[raw_labels[i,j+1]]
+                        file_labels[i,0] = mapping[raw_labels[i,1]]
 
                 # Print out the number of artifacts
                 tmp = file_labels[:,0]
                 print "Number of artifacts is: " + str(np.count_nonzero(tmp[tmp=='-1']))
                 
                 # Debug
-                # print file_labels
-
-                # derive neighbourhood label
-                file_labels = np.hstack((file_labels,np.zeros(nlabels).reshape(nlabels,1))) # add extra column
-                j = np.shape(file_labels)[1]-1
-                for i in range(nlabels):
-                    if i==0:
-                        if (file_labels[i+1][1]=="-1" or file_labels[i+1][2]=="-1"):
-                            file_labels[i][j] ="-2"
-                        else:
-                            file_labels[i][j] ="2"
-
-                    elif i==nlabels-1:
-                        if (file_labels[i-1][1]=="-1" or file_labels[i-1][2]=="-1"):
-                            file_labels[i][j] ="-2"
-                        else:
-                            file_labels[i][j] ="2"
-
-                    else:
-                        if (file_labels[i-1][1]=="-1" or file_labels[i+1][1]=="-1" or file_labels[i-1][2]=="-1" or file_labels[i+1][2]=="-1"):
-                            file_labels[i][j] ="-2"
-                        else:
-                            file_labels[i][j] ="2"
-
-                # Debug
-                # print file_labels
+                print file_labels
 
                 # Accumulating features and labels
                 features = np.vstack([features, file_features]) if np.shape(features)[0] else file_features

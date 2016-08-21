@@ -17,7 +17,7 @@ nchannels = 3
 signal_length = 128
 -- number of labels on the test data;  apart from 1/0 label which indicates whether 
 -- the sample is artifact, we have some extra information such as e.g. neighbour labels
-nlabels = 4
+nlabels = 3
 
 -----------------------
 -- Experiment variables
