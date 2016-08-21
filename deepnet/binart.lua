@@ -23,9 +23,9 @@ nlabels = 3
 -- Experiment variables
 -----------------------
 -- Specify whether we should retrain the model or use the previous one
-RETRAIN 	 = false
+RETRAIN 	 = true
 -- The number of the experiment to be performed
-exp 		 = '5'
+exp 		 = '1'
 -- The augmentation type of the selected experiment
 aug 		 = '_rot_mir'
 
@@ -33,7 +33,7 @@ aug 		 = '_rot_mir'
 -- Architectural variables
 --------------------------
 -- The number of iterations to be performed in case we are retraining the network
-max_iterations = 10
+max_iterations = 7
 -- The number of additional iterations to perform in case we are using the previous network
 extra_iterations = 0
 -- The learning rate used during the network training
@@ -78,6 +78,11 @@ criterion = nn.SoftMarginCriterion()
 trainer = nn.StochasticGradient(net,criterion)
 trainer.learningRate = learning_rate
 trainer.maxIteration = max_iterations
+if CUDA then
+	net = net:cuda()
+	criterion = criterion:cuda()
+end
+
 
 ------------------------------------
 ---------------- DEBUG -------------
@@ -96,35 +101,26 @@ print("Learning rate: "..learning_rate)
 print("Layer 1 (feature maps,kernel): "..l1_feature_maps,l1_kernel_size)
 print("Layer 2 (feature maps,kernel): "..l2_feature_maps,l2_kernel_size)
 
-----------------------------------------------------------------------------
--- Load training and testing data sets from .CSV files of selected experiment
------------------------------------------------------------------------------
-train_set = inout.load_dataset('../../CSV/train_exp'..exp..aug..'.csv',nchannels,1)
-test_set  = inout.load_dataset('../../CSV/test_exp'..exp..'.csv',nchannels,nlabels)
 
-------------------------------------
--------------- DEBUG ---------------
-------------------------------------
-print("---------------------")
-print("Training data loaded:")
-print("---------------------")
-print("Input dimensions:")
-print(train_set.data:size())
-print("Label dimensions:")
-print(train_set.label:size())
-
-
-
-----------------------------
--- Move to CUDA if specified
-----------------------------
-if CUDA then
-	net = net:cuda()
-	criterion = criterion:cuda()
-	train_set.data = train_set.data:cuda()
-	train_set.label = train_set.label:cuda()
-	test_set.data  = test_set.data:cuda()
-	test_set.label = test_set.label:cuda()
+if RETRAIN then
+	-----------------------------------------------------------------
+	-- Load training data sets from .CSV files of selected experiment
+	-----------------------------------------------------------------
+	train_set = inout.load_dataset('../../CSV/train_exp'..exp..aug..'.csv',nchannels,1)
+	------------------------------------
+	-------------- DEBUG ---------------
+	------------------------------------
+	print("---------------------")
+	print("Training data loaded:")
+	print("---------------------")
+	print("Input dimensions:")
+	print(train_set.data:size())
+	print("Label dimensions:")
+	print(train_set.label:size())
+	if CUDA then
+		train_set.data  = train_set.data:cuda()
+		train_set.label = train_set.label:cuda()
+	end
 end
 
 
@@ -158,13 +154,34 @@ end
 
 -----------------
 -- Save the model
-----------------
+-----------------
 torch.save('models/binart', net)
 
 
+----------------------------------------------------------------
+-- Load testing data sets from .CSV files of selected experiment
+----------------------------------------------------------------
+test_set  = inout.load_dataset('../../CSV/test_exp'..exp..'.csv',nchannels,nlabels)
+------------------------------------
+-------------- DEBUG ---------------
+------------------------------------
+print("---------------------")
+print("Testing data loaded:")
+print("---------------------")
+print("Input dimensions:")
+print(test_set.data:size())
+print("Label dimensions:")
+print(test_set.label:size())
+if CUDA then
+	test_set.data  = test_set.data:cuda()
+	test_set.label = test_set.label:cuda()
+end
 
+
+
+-----------------------------------------------------------
 -- Test the accuracy of the network on the testing data set
-------------------------------------------------------------
+-----------------------------------------------------------
 print "------------------------------"
 print "Testing set artefakt detection"
 eval.test(test_set)
