@@ -23,7 +23,7 @@ nlabels = 3
 -- Experiment variables
 -----------------------
 -- Specify whether we should retrain the model or use the previous one
-RETRAIN 	 = true
+RETRAIN 	 = false
 -- The number of the experiment to be performed
 exp 		 = '1'
 -- The augmentation type of the selected experiment
@@ -137,7 +137,7 @@ if RETRAIN then
 else
 	print('---------------------------------')
         print('Loading already saved model')
-	net = torch.load('models/binart')
+	net = torch.load('models/binart'..exp)
 	if extra_iterations>0 then
 		print('----------------------')
 		print('Performing additional '..extra_iterations..' iterations')
@@ -155,7 +155,7 @@ end
 -----------------
 -- Save the model
 -----------------
-torch.save('models/binart', net)
+torch.save('models/binart'..exp, net)
 
 
 ----------------------------------------------------------------

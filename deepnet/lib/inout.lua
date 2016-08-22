@@ -75,6 +75,17 @@ function readCSV(filepath)
           i = i + 1
           local l = line:split(',')
           for key, val in ipairs(l) do
+	    if val=="w" then
+		val=10
+	    elseif val=="r" then
+		val=20
+	    elseif val=="n" then
+		val=30	
+	    elseif val=="a" then
+		val=1
+	    elseif val=="'" then
+		val=1
+	    end
             data[i][key] = val
           end
         end
