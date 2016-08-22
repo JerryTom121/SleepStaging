@@ -4,8 +4,8 @@ ROTATION = 1;
 MIRROR   = 1;
 % experiment info
 %signal_length = 65;
-signal_length = 128;
-%signal_length = 256;
+%signal_length = 128;
+signal_length = 256;
 num_channels = 3;
 % Path to CSV folder
 CSV_path = '/home/djordje/Desktop/CSVdata/';

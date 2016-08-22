@@ -47,6 +47,7 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
     feature_extractors = {
       'raw_signal': raw_signal_features,
       'fft': fft_features,
+      'mixed': mixed_features,
 
       'statistical': statistical_features,
       'hybrid': hybrid_features,
@@ -251,16 +252,53 @@ def fft_features(file_path,interval_size=4,exchange_eeg=False):
         features[i, -1] = np.sum(emg_pos_spectrum[emg_bin])
         # Get The first artefakt feature - EMG average amplitude
        # artefakt_features[i,0] = 
+
     # Normalize using log transformation.
     # Based on the paper: "Frequency Domain Analysis of Sleep EEG for Visualization and Automated State Detection"
     # > Log scaled components show better statistical properties. As a consequence,
     # > the power spectrogram is first scaled using a log transformation.
     # features = np.log(features);
+    scaler = preprocessing.RobustScaler()
+    features = scaler.fit_transform(features)
+
     return features
 
+
+def mixed_features(file_path,interval_size=4,exchange_eeg=False, ds_factor=4):
+
+    # get fourier features
+    fftfeatures = fft_features(file_path,interval_size,exchange_eeg)
+    # get raw temporal signal features
+    rawfeatures = raw_signal_features(file_path,interval_size,exchange_eeg,ds_factor)
+    # stack them into one matrix
+    features = np.hstack([rawfeatures,fftfeatures])
+    # return
+    return features
 # ----------------------------------------------------------------------------------------------- #
 # ----------------------------------------------------------------------------------------------- #
 # ----------------------------------------------------------------------------------------------- #
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

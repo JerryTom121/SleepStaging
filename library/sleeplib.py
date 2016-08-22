@@ -179,3 +179,30 @@ def evaluate_artefakt_detection(predictions,Y_test):
 def bandpass(sig,band,fs):
     B,A = signal.butter(5, np.array(band)/(fs/2), btype='bandpass')
     return signal.lfilter(B, A, sig, axis=0)
+
+
+def evaluate(predictions,truth):
+    # Evaluate quality of predictions
+    hits = 0
+    miss = 0
+    fpos = 0
+    for i in range(len(predictions)):
+
+        # Artifact
+        if truth[i] == -1:
+            # Detected
+            if predictions[i] == -1:
+                hits = hits + 1
+            # Missed
+            else:
+                miss = miss + 1
+        # Non-artifact
+        else:
+            # False positive
+            if predictions[i] == -1:
+                fpos = fpos + 1
+
+    # print stats
+    print("Hits: "+str(hits))
+    print("Fpos: "+str(fpos))
+    print("Miss: "+str(miss))
