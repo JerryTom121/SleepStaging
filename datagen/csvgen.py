@@ -38,7 +38,7 @@ if Exp.split:
     print 'Reading all data set from the same file set:'
     print '--------------------------------------------'
     print 'Get data set..'
-    [features,labels] = extract_features(Exp.feat_ext,Exp.eeg_folder,Exp.trainset,MAPPING,Exp.interval,exp.extrain)
+    [features,labels] = extract_features(Exp.feat_ext,Exp.eeg_folder,Exp.trainset,MAPPING,Exp.interval,Exp.extrain)
     # Remove artefakts if requested by the experiment
     if Exp.artrem:
         print 'Remove artefakts from training data set!'

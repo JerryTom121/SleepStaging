@@ -46,8 +46,8 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
     # Select feature extractor
     feature_extractors = {
       'raw_signal': raw_signal_features,
+      'fft': fft_features,
 
-      'fourier': fourier_features,
       'statistical': statistical_features,
       'hybrid': hybrid_features,
       'imaging': imaging_features,
@@ -166,6 +166,98 @@ def raw_signal_features(file_path,interval_size=4,exchange_eeg=False, ds_factor=
 
     return X
 
+
+def fft_features(file_path,interval_size=4,exchange_eeg=False):
+    # --------------------------------------------------------------------------- #
+    # ---------------- Read .edf file and extract time-series ------------------- #
+    # --------------------------------------------------------------------------- #
+    data              = load_edf(file_path)
+    sample_rate       = data.sample_rate
+    samples_per_epoch = interval_size * sample_rate
+    # The EEG got recorded with two traces. From the provided readme
+    #   > For now we only consider the first EEG trace
+    eeg1 = data.X[data.chan_lab.index('EEG1')]
+    eeg2 = data.X[data.chan_lab.index('EEG2')]
+    emg  = data.X[data.chan_lab.index('EMG')]
+    # Perform the exchange of eeg
+    # if necessary
+    if exchange_eeg:
+        tmp = eeg1
+        eeg1 = eeg2
+        eeg2 = eeg1
+        print "exchange done...."
+    # Extract information about the number of 
+    # epochs for chosen interval time
+    total_size = len(eeg1)
+    epochs = total_size / samples_per_epoch
+    # --------------------------------------------------------------------------- #
+    # ---------------- Create array to represent frequency spectrum ------------- #
+    # --------------------------------------------------------------------------- #
+    # Compute the frequencies corresponding to the eeg_pos_spec indices. Because we
+    # sample an entire interval of 'interval' waves at once, need to normalize
+    # the frequencies by that factor as well.
+    # Due to simetry we calculate only positive frequency spectrum, hence n/2+1
+    eeg_pos_spectrum_len = int(samples_per_epoch / 2 + 1);
+    eeg_f                = np.linspace(0, eeg_pos_spectrum_len - 1, eeg_pos_spectrum_len) / interval_size
+    # --------------------------------------------------------------------------- #
+    # ---------------- Create frequency buckets --------------------------------- #
+    # --------------------------------------------------------------------------- #
+    # The indices from the power spectrum array into a bin.
+    # For each feature there is a group of indices for the 
+    # corresponding frequency bucket
+    eeg1_bin_idx = []
+    eeg2_bin_idx = []
+    # The following uses standard frequency buckets as they are also often used
+    # in the sleep literature.
+    # EEG1
+    eeg1_bin_idx.append(np.where(np.logical_and(0.49 < eeg_f, eeg_f <= 5))[0])    # delta
+    eeg1_bin_idx.append(np.where(np.logical_and(5    < eeg_f, eeg_f <= 9))[0])    # theta
+    eeg1_bin_idx.append(np.where(np.logical_and(9    < eeg_f, eeg_f <= 15))[0])   # alpha
+    eeg1_bin_idx.append(np.where(np.logical_and(15   < eeg_f, eeg_f <= 23))[0])   # ...
+    eeg1_bin_idx.append(np.where(np.logical_and(23   < eeg_f, eeg_f <= 32))[0])
+    eeg1_bin_idx.append(np.where(np.logical_and(32   < eeg_f, eeg_f <= 64))[0])
+    # EEG2
+    eeg2_bin_idx.append(np.where(np.logical_and(0.49 < eeg_f, eeg_f <= 5))[0])    # delta
+    eeg2_bin_idx.append(np.where(np.logical_and(5    < eeg_f, eeg_f <= 9))[0])    # theta
+    eeg2_bin_idx.append(np.where(np.logical_and(9    < eeg_f, eeg_f <= 15))[0])   # alpha
+    eeg2_bin_idx.append(np.where(np.logical_and(15   < eeg_f, eeg_f <= 23))[0])   # ...
+    eeg2_bin_idx.append(np.where(np.logical_and(23   < eeg_f, eeg_f <= 32))[0])
+    eeg2_bin_idx.append(np.where(np.logical_and(32   < eeg_f, eeg_f <= 64))[0])
+    # EMG: Filter the frequencies for the EMG between 4 and 40.
+    emg_bin = np.where(np.logical_and(4 <= eeg_f, eeg_f <= 40))[0]
+    # --------------------------------------------------------------------------- #
+    # - Calculate FT on 4s intervals and energy for each bucket within interval - #
+    # --------------------------------------------------------------------------- #
+    # Array to contain the resulting preprocessed data:
+    # rows are 4s intervals and columns are features/bucket energies,
+    # the last column is energy of EMG
+    features = np.zeros((epochs, len(eeg1_bin_idx) + len(eeg2_bin_idx) + 1))
+   # artefakt_features = np.zeros((epochs,1))
+    # Perform FFT
+    for i in range(int(epochs)):
+        # Compute the FFT on the EEG  and EMG data. Using real-fft to get smaller
+        # output vector. Converting the fourier coefficients to energies by taking
+        # the squared absolute value on the (complex) fourier coefficient.
+        eeg1_pos_spectrum = np.abs(fft.rfft(eeg1[samples_per_epoch * i: samples_per_epoch * (i + 1)])) ** 2
+        eeg2_pos_spectrum = np.abs(fft.rfft(eeg2[samples_per_epoch * i: samples_per_epoch * (i + 1)])) ** 2
+        emg_pos_spectrum  = np.abs(fft.rfft(emg[samples_per_epoch * i: samples_per_epoch * (i + 1)])) ** 2
+        # Compute the sums over the frequency buckets of the EEG signal.
+        for j in range(len(eeg1_bin_idx)):
+            features[i, j] = np.sum(eeg1_pos_spectrum[eeg1_bin_idx[j]])
+        #    
+        for j in range(len(eeg2_bin_idx)):
+            features[i, len(eeg1_bin_idx)+j] = np.sum(eeg2_pos_spectrum[eeg2_bin_idx[j]])    
+        # The EMG power signal goes into a single bucket.
+        features[i, -1] = np.sum(emg_pos_spectrum[emg_bin])
+        # Get The first artefakt feature - EMG average amplitude
+       # artefakt_features[i,0] = 
+    # Normalize using log transformation.
+    # Based on the paper: "Frequency Domain Analysis of Sleep EEG for Visualization and Automated State Detection"
+    # > Log scaled components show better statistical properties. As a consequence,
+    # > the power spectrogram is first scaled using a log transformation.
+    # features = np.log(features);
+    return features
+
 # ----------------------------------------------------------------------------------------------- #
 # ----------------------------------------------------------------------------------------------- #
 # ----------------------------------------------------------------------------------------------- #
@@ -220,90 +312,6 @@ def statistical_features(file_path,interval_size=4,exchange_eeg=False):
         X = np.vstack([X, features]) if np.shape(X)[0] else features
 
     return X
-
-
-
-
-def fourier_features(file_path,interval_size=4,exchange_eeg=False):
-    # --------------------------------------------------------------------------- #
-    # ---------------- Read .edf file and extract time-series ------------------- #
-    # --------------------------------------------------------------------------- #
-    data              = load_edf(file_path)
-    sample_rate       = data.sample_rate
-    samples_per_epoch = interval_size * sample_rate
-    # The EEG got recorded with two traces. From the provided readme
-    #   > For now we only consider the first EEG trace
-    eeg1 = data.X[data.chan_lab.index('EEG1')]
-    eeg2 = data.X[data.chan_lab.index('EEG2')]
-    emg  = data.X[data.chan_lab.index('EMG')]
-    # Perform the exchange of eeg
-    # if necessary
-    if exchange_eeg:
-        tmp = eeg1
-        eeg1 = eeg2
-        eeg2 = eeg1
-        print "exchange done...."
-    # Extract information about the number of 
-    # epochs for chosen interval time
-    total_size = len(eeg1)
-    epochs = total_size / samples_per_epoch
-    # --------------------------------------------------------------------------- #
-    # ---------------- Create array to represent frequency spectrum ------------- #
-    # --------------------------------------------------------------------------- #
-    # Compute the frequencies corresponding to the eeg_pos_spec indices. Because we
-    # sample an entire interval of 'interval' waves at once, need to normalize
-    # the frequencies by that factor as well.
-    # Due to simetry we calculate only positive frequency spectrum, hence n/2+1
-    eeg_pos_spectrum_len = int(samples_per_epoch / 2 + 1);
-    eeg_f                = np.linspace(0, eeg_pos_spectrum_len - 1, eeg_pos_spectrum_len) / interval_size
-    # --------------------------------------------------------------------------- #
-    # ---------------- Create frequency buckets --------------------------------- #
-    # --------------------------------------------------------------------------- #
-    # The indices from the power spectrum array into a bin.
-    # For each feature there is a group of indices for the 
-    # corresponding frequency bucket
-    eeg_bin_idx = []
-    # The following uses standard frequency buckets as they are also often used
-    # in the sleep literature.
-    eeg_bin_idx.append(np.where(np.logical_and(0.49 < eeg_f, eeg_f <= 5))[0])  # delta
-    eeg_bin_idx.append(np.where(np.logical_and(5    < eeg_f, eeg_f <= 9))[0])    # theta
-    eeg_bin_idx.append(np.where(np.logical_and(9    < eeg_f, eeg_f <= 15))[0])   # alpha
-    eeg_bin_idx.append(np.where(np.logical_and(15   < eeg_f, eeg_f <= 23))[0])   # ...
-    eeg_bin_idx.append(np.where(np.logical_and(23   < eeg_f, eeg_f <= 32))[0])
-    eeg_bin_idx.append(np.where(np.logical_and(32   < eeg_f, eeg_f <= 64))[0])
-    # Filter the frequencies for the EMG between 4 and 40.
-    emg_bin = np.where(np.logical_and(4 <= eeg_f, eeg_f <= 40))[0]
-    # --------------------------------------------------------------------------- #
-    # - Calculate FT on 4s intervals and energy for each bucket within interval - #
-    # --------------------------------------------------------------------------- #
-    # Array to contain the resulting preprocessed data:
-    # rows are 4s intervals and columns are features/bucket energies,
-    # the last column is energy of EMG
-    features = np.zeros((epochs, len(eeg_bin_idx) + 1))
-   # artefakt_features = np.zeros((epochs,1))
-    # Perform FFT
-    for i in range(int(epochs)):
-        # Compute the FFT on the EEG  and EMG data. Using real-fft to get smaller
-        # output vector. Converting the fourier coefficients to energies by taking
-        # the squared absolute value on the (complex) fourier coefficient.
-        eeg1_pos_spectrum = np.abs(fft.rfft(eeg1[samples_per_epoch * i: samples_per_epoch * (i + 1)])) ** 2
-        emg_pos_spectrum  = np.abs(fft.rfft(emg[samples_per_epoch * i: samples_per_epoch * (i + 1)])) ** 2
-        # Compute the sums over the frequency buckets of the EEG signal.
-        for j in range(len(eeg_bin_idx)):
-            features[i, j] = np.sum(eeg1_pos_spectrum[eeg_bin_idx[j]])
-        # The EMG power signal goes into a single bucket.
-        features[i, -1] = np.sum(emg_pos_spectrum[emg_bin])
-        # Get The first artefakt feature - EMG average amplitude
-       # artefakt_features[i,0] = 
-    # Normalize using log transformation.
-    # Based on the paper: "Frequency Domain Analysis of Sleep EEG for Visualization and Automated State Detection"
-    # > Log scaled components show better statistical properties. As a consequence,
-    # > the power spectrogram is first scaled using a log transformation.
-    # features = np.log(features);
-    return features
-
-
-
 
 
 def hybrid_features(file_path,interval_size=4,exchange_eeg=False):
