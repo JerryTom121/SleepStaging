@@ -10,6 +10,24 @@ local M = {};
 --------------------------------------------------
 function M.test(dataset,network)
 
+   	print("------------------------------------------")
+        print("Reformating data to fit different modules:")
+        print("------------------------------------------")
+        train_set_conv = dataset.data[{{},{1,3*128}}]
+        train_set_conv = torch.reshape(train_set_conv,dataset.data:size(1),3,128)
+        train_set_conv = train_set_conv:transpose(2,3)
+        train_set_fft  = dataset.data[{{},{3*128+1,3*128+13}}]
+
+        print("Conv module input dimensions:")
+        print(train_set_conv:size())
+        train_set_conv = train_set_conv:cuda()
+
+        print("FFT module input dimensions:")
+        print(train_set_fft:size())
+        train_set_fft  = train_set_fft:cuda()
+
+
+
     local hits = 0
     local fp = 0
     local fn = 0
@@ -39,9 +57,14 @@ function M.test(dataset,network)
 
     for i=2,dataset:size()-1 do
 
+	-- now
+	input =	{train_set_conv[{{i},{},{}}],train_set_fft[{{i},{}}]}
+	-- before
+	-- input = dataset.data[i]
+
 	-- Get the true label and our prediction
         local groundtruth = dataset.label[i][1]
-        local prediction = network:forward(dataset.data[i])
+        local prediction = network:forward(input)
 
 	-- DEBUG
 --	print("prediction="..prediction[1].."; truth="..groundtruth)

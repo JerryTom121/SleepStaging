@@ -10,7 +10,7 @@ local M = {};
 function M.load_dataset(filepath,nchannels,nlabels)
 
 	local dataset = {}
-	
+
 	-- Read .csv file containing the data set
 	local datasetCSV  = readCSV(filepath)
 
