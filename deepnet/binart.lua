@@ -15,6 +15,7 @@ CUDA = true
 nchannels = 3		
 -- epoch length
 signal_length = 128
+--signal_length = 256
 -- number of labels on the test data;  apart from 1/0 label which indicates whether 
 -- the sample is artifact, we have some extra information such as e.g. neighbour labels
 nlabels = 3
@@ -23,9 +24,9 @@ nlabels = 3
 -- Experiment variables
 -----------------------
 -- Specify whether we should retrain the model or use the previous one
-RETRAIN 	 = false
+RETRAIN 	 = true
 -- The number of the experiment to be performed
-exp 		 = '1'
+exp 		 = '6'
 -- The augmentation type of the selected experiment
 aug 		 = '_rot_mir'
 
@@ -33,7 +34,7 @@ aug 		 = '_rot_mir'
 -- Architectural variables
 --------------------------
 -- The number of iterations to be performed in case we are retraining the network
-max_iterations = 7
+max_iterations = 6
 -- The number of additional iterations to perform in case we are using the previous network
 extra_iterations = 0
 -- The learning rate used during the network training
@@ -135,8 +136,8 @@ if RETRAIN then
 	trainer:train(train_set)
 	print('Time elapsed for training neural net: ' .. timer:time().real .. ' seconds\n')
 else
-	print('---------------------------------')
-        print('Loading already saved model')
+	print('-----------------------------')
+        print('Loading already saved model..')
 	net = torch.load('models/binart'..exp)
 	if extra_iterations>0 then
 		print('----------------------')
@@ -146,7 +147,7 @@ else
 		trainer.maxIteration = extra_iterations
 		trainer:train(train_set)
 	else
-		print('No additional iterations...')
+		print('(no additional iterations)')
 	end
 
 end
@@ -184,14 +185,13 @@ end
 -----------------------------------------------------------
 print "------------------------------"
 print "Testing set artefakt detection"
-eval.test(test_set,net)
+eval.test(test_set,net,false)
 
 
 
 -------------------------------------------------
 -- Test the accuracy of the combination of models
 -------------------------------------------------
---[[
 print "------------------------------------------------"
 print "Testing set artefakt detection of a combination:"
 fourier_net = torch.load('models/fftbinart5')
@@ -199,5 +199,4 @@ fourier_test_set  = inout.load_dataset('../../CSV/test_exp5.csv',1,nlabels)
 fourier_test_set.data  = fourier_test_set.data:cuda()
 fourier_test_set.label = fourier_test_set.label:cuda()
 eval.test2(test_set,net,fourier_test_set,fourier_net)
---]]
 

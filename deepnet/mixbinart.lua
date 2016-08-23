@@ -3,186 +3,177 @@ require 'paths'
 require 'csvigo'
 require 'cunn'
 require 'gnuplot'
+require 'lib.SGD'
 local inout = require 'lib.inout'
 local eval  = require 'lib.eval'
-local training = require 'lib.SGD'
 
-------------------------------------------
--- Constants: not to be changed in general
-------------------------------------------
-nchannels 	= 3		
-signal_length 	= 128
-fft_features    = 13
-nlabels 	= 3
 
------------------------
+-------------------------------------------------------
 -- Experiment variables
------------------------
-RETRAIN 	= true   -- Retrain the network or load existing model
-exp 		= '9'    -- Number of experiment
-aug 		= '_aug' -- Artifact augmentation type
+-------------------------------------------------------
+retrain 	= false   -- Retrain or load the model
+numExp 		= '9'    -- Number of experiment
+augType		= '_rot' -- Artifact augmentation type
+maxIter		= 9	 -- Number of train iterations
+extraIter 	= 0      -- Additional iterations
+learnRate	= 0.0003-- Learning rate
+learnRateDecay  = 0.2	 -- /(1+numIter*decay)
 
---------------------------
+--------------------------------------------------------
+-- Constants: not to be changed in general
+--------------------------------------------------------
+numChan	 	= 3      -- 3 channels: EEG1;EEG2;EMG	
+numLabels 	= 3	 -- number of testing data labels
+epochSize 	= 128    -- length of epoch signal
+numFFTfeat      = 13     -- number of fourier features
+
+
+--------------------------------------------------------
 -- Architectural variables
---------------------------
--- The number of iterations to be performed in case we are retraining the network
-max_iterations = 7
--- The number of additional iterations to perform in case we are using the previous network
-extra_iterations = 0
--- The learning rate used during the network training
-learning_rate  = 0.0002
-learning_rate_decay = 0.1
+--------------------------------------------------------
+-- Convolution module
+---------------------
 -- Layer 1 (temporal convolution) parameters
-l1_feature_maps = 8
-l1_kernel_size  = 20
-l1_stride_size  = 1
+CONV_L1_featureMaps = 8
+CONV_L1_kernel      = 20
+CONV_L1_stride      = 1
 -- Layer 2 (temporal convolution) parameters
-l2_feature_maps = 12
-l2_kernel_size  = 10
-l2_stride_size  = 1
-
+CONV_L2_featureMaps = 12
+CONV_L2_kernel      = 10
+CONV_L2_stride      = 1
+-- Output
+CONV_output = 30
 -- Fourier module
-----------------
-layer_1 = 30
-layer_2 = 10
+-----------------
+-- Layer 1
+FFT_L1 = 30
+-- Output
+FFT_output = 10
 
-------------------------------
+
+-------------------------------------------------------
 -- Neural network architecture
-------------------------------
-
--- Convolutional module
------------------------
+--------------------------------------------------------
+-- Convolution module
+---------------------
 convnet = nn.Sequential()
+signal = epochSize
 -- Add Layer 1:
-convnet:add(nn.TemporalConvolution(nchannels,l1_feature_maps,l1_kernel_size,l1_stride_size))
+convnet:add(nn.TemporalConvolution(numChan,CONV_L1_featureMaps,CONV_L1_kernel,CONV_L1_stride))
 convnet:add(nn.ReLU()) 
-signal_length  = (signal_length-l1_kernel_size)/l1_stride_size + 1 
+signal  = (signal-CONV_L1_kernel)/CONV_L1_stride + 1 
 -- Add Layer 2
-convnet:add(nn.TemporalConvolution(l1_feature_maps,l2_feature_maps,l2_kernel_size,l2_stride_size))
+convnet:add(nn.TemporalConvolution(CONV_L1_featureMaps,CONV_L2_featureMaps,CONV_L2_kernel,CONV_L2_stride))
 convnet:add(nn.ReLU())
-signal_length   = (signal_length-l2_kernel_size)/l2_stride_size + 1 
+signal  = (signal-CONV_L2_kernel)/CONV_L2_stride + 1 
 -- Add Layer 3: fully connected layer
-convnet:add(nn.View(l2_feature_maps*signal_length))
-convnet:add(nn.Linear(l2_feature_maps*signal_length, 3))
+convnet:add(nn.View(CONV_L2_featureMaps*signal))
+convnet:add(nn.Linear(CONV_L2_featureMaps*signal,CONV_output))
 convnet:add(nn.View(-1))
-
 -- Fourier module
 -----------------
 fftnet = nn.Sequential()
 -- Add Layer 1:
-fftnet:add(nn.Linear(fft_features,layer_1))
-fftnet:add(nn.ReLU())
--- Add Layer 2:
-fftnet:add(nn.Linear(layer_1,layer_2))
+fftnet:add(nn.Linear(numFFTfeat,FFT_L1))
 fftnet:add(nn.ReLU())
 -- Output
-fftnet:add(nn.Linear(layer_2,3))
+fftnet:add(nn.Linear(FFT_L1,FFT_output))
 fftnet:add(nn.View(-1))
-
--- Network
-----------
+-- Network construction
+-----------------------
 mix = nn.ParallelTable()
 	 :add(convnet)
          :add(fftnet)
 net = nn.Sequential()
 	 :add(mix)
          :add(nn.JoinTable(1))
-	 :add(nn.Linear(6,1))
+	 :add(nn.Linear(CONV_output+FFT_output,1))
          :add(nn.View(-1))
 
 
-------------------------------------
----------------- DEBUG -------------
-------------------------------------
+------------------------------------------------------
+-- DEBUG
+------------------------------------------------------
 print("-------------------------")
 print("The network architecture:")
 print("-------------------------")
 print(net:__tostring());
-print("------------------------------------")
-print("Chosen parameters in this round are:")
-print("------------------------------------")
-print("The chosen experiment: "..exp)
-print("The augmentation method: "..aug)
-print("Iterations: "..max_iterations)
-print("Learning rate: "..learning_rate)
-print("Layer 1 (feature maps,kernel): "..l1_feature_maps,l1_kernel_size)
-print("Layer 2 (feature maps,kernel): "..l2_feature_maps,l2_kernel_size)
+print("-----------")
+print("Parameters:")
+print("-----------")
+print("The chosen experiment: "..numExp)
+print("The augmentation method: "..augType)
+print("Iterations: "..maxIter)
+print("Learning rate: "..learnRate)
+print("Convolutional Layer 1 (feature maps,kernel): "..CONV_L1_featureMaps,CONV_L1_kernel)
+print("Convolutional Layer 2 (feature maps,kernel): "..CONV_L2_featureMaps,CONV_L2_kernel)
+print("Convolutional network output: "..CONV_output)
 
 
-
-local train_set_conv = {}
-local train_set_fft  = {}
-
-
-if RETRAIN or extra_iterations>0 then
-	-----------------------------------------------------------------
-	-- Load training data sets from .CSV files of selected experiment
-	-----------------------------------------------------------------
+-----------------------------------------------------
+-- Load training data set
+-----------------------------------------------------
+if retrain or extraIter>0 then
 
 	print("------------------------")
 	print("Loading training data...")
 	print("------------------------")
-	train_set = inout.load_dataset('../../CSV/train_exp'..exp..aug..'.csv',1,1)
-	print("Input dimensions:")
-	print(train_set.data:size())
-	train_set.data = train_set.data:cuda()
-	print("Label dimensions:")
-	print(train_set.label:size())
-	train_set.label = train_set.label:cuda()
-
-
+	trainSet = inout.load_dataset('../../CSV/train_exp'..numExp..augType..'.csv',1,1)
+	-- reshape data to fit network architecture
 	print("------------------------------------------")
 	print("Reformating data to fit different modules:")
 	print("------------------------------------------")
-	train_set_conv = train_set.data[{{},{1,3*128}}]
-	train_set_conv = torch.reshape(train_set_conv,train_set.data:size(1),3,128)
-        train_set_conv = train_set_conv:transpose(2,3)
-	train_set_fft  = train_set.data[{{},{3*128+1,3*128+13}}]
-
-	print("Conv module input dimensions:")
-	print(train_set_conv:size())
-	train_set_conv = train_set_conv:cuda()
-
-	print("FFT module input dimensions:")
-	print(train_set_fft:size())
-	train_set_fft  = train_set_fft:cuda()
-
+	CONV_train = torch.reshape(trainSet.data[{{},{1,numChan*epochSize}}],
+				   trainSet.data:size(1),numChan,epochSize):transpose(2,3)
+	FFT_train  = trainSet.data[{{},{numChan*epochSize+1,numChan*epochSize+numFFTfeat}}]
+	print("Conv module input dimensions: "..CONV_train:size(1).." x "..CONV_train:size(2).." x "..CONV_train:size(3))
+	print("FFT module input dimensions:  "..FFT_train:size(1).." x "..FFT_train:size(2))
+	-- Move to CUDA
+	trainSet.convData = CONV_train:cuda()
+	trainSet.fftData  = FFT_train:cuda() 
+	trainSet.label    = trainSet.label:cuda()
 end
 
 
-----------------------------------------
+---------------------------------------------------
 -- Neural network optimization procedure
-----------------------------------------
+---------------------------------------------------
 criterion = nn.SoftMarginCriterion()
 trainer = nn.SGD(net,criterion)
-trainer.learningRate = learning_rate
-trainer.maxIteration = max_iterations
-trainer.learningRateDecay = learning_rate_decay
+trainer.learningRate = learnRate
+trainer.maxIteration = maxIter
+trainer.learningRateDecay = learnRateDecay
 net = net:cuda()
 criterion = criterion:cuda()
+
 
 ---------------------------------------------------
 -- Train the network or simply load it from the file
 ----------------------------------------------------
-if RETRAIN then
-	print('---------------------------------')
+if retrain then
+	print('----------------------------------------')
 	print('Training of the neural network begins...')
+	print('----------------------------------------')
 	collectgarbage()
     	timer = torch.Timer()
-	trainer:train(train_set_conv,train_set_fft,train_set.label)
+	trainer:train(trainSet.convData,trainSet.fftData,trainSet.label)
 	print('Time elapsed for training neural net: ' .. timer:time().real .. ' seconds\n')
+	-- Save the model
+	torch.save('models/binart'..numExp, net)
 else
 	print('---------------------------------')
         print('Loading already saved model')
-	net = torch.load('models/binart'..exp)
-	if extra_iterations>0 then
+	net = torch.load('models/binart'..numExp)
+	if extraIter>0 then
 		print('----------------------')
-		print('Performing additional '..extra_iterations..' iterations')
+		print('Performing additional '..extraIter..' iterations')
 		trainer = nn.SGD(net, criterion)
-		trainer.learningRate = learning_rate
-		trainer.maxIteration = extra_iterations
-		trainer.learningRateDecay = learning_rate_decay
-		trainer:train(train_set_conv,train_set_fft,train_set.label)
+		trainer.learningRate = learnRate
+		trainer.maxIteration = extraIter
+		trainer.learningRateDecay = learnRateDecay
+		trainer:train(trainSet.convData,trainSet.fftData,trainSet.label)
+		-- Save the model
+		torch.save('models/binart'..numExp, net)
 	else
 		print('No additional iterations...')
 	end
@@ -190,34 +181,28 @@ else
 end
 
 
------------------
--- Save the model
------------------
-torch.save('models/binart'..exp, net)
-
-
 ----------------------------------------------------------------
 -- Load testing data sets from .CSV files of selected experiment
 ----------------------------------------------------------------
-test_set  = inout.load_dataset('../../CSV/test_exp'..exp..'.csv',1,nlabels)
-------------------------------------
--------------- DEBUG ---------------
-------------------------------------
-print("---------------------")
-print("Testing data loaded:")
-print("---------------------")
-print("Input dimensions:")
-print(test_set.data:size())
-print("Label dimensions:")
-print(test_set.label:size())
-test_set.data  = test_set.data:cuda()
-test_set.label = test_set.label:cuda()
+print("--------------------------")
+print("Loading validation data...:")
+print("--------------------------")
+testSet  = inout.load_dataset('../../CSV/test_exp'..numExp..'.csv',1,numLabels)
+-- reshape the validation data to fit our network
+CONV_test = torch.reshape(testSet.data[{{},{1,numChan*epochSize}}],
+			  testSet.data:size(1),numChan,epochSize):transpose(2,3)
+FFT_test  = testSet.data[{{},{numChan*epochSize+1,numChan*epochSize+numFFTfeat}}]
+-- move to CUDA
+testSet.convData = CONV_test:cuda()
+testSet.fftData  = FFT_test:cuda()
+testSet.label = testSet.label:cuda()
+print("Validation data loaded: contains "..testSet:size(1).." samples.")
 
 
-
------------------------------------------------------------
+----------------------------------------------------------------
 -- Test the accuracy of the network on the testing data set
------------------------------------------------------------
-print "------------------------------"
-print "Testing set artefakt detection"
-eval.test(test_set,net)
+----------------------------------------------------------------
+print "--------------------------------"
+print "Validating artefakt detection..."
+print "--------------------------------"
+eval.test(testSet,net,true)

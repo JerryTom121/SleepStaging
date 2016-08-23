@@ -8,25 +8,7 @@ local M = {};
 -- Evaluate the efficency in discovering artifacts
 -- @param dataset testing data set
 --------------------------------------------------
-function M.test(dataset,network)
-
-   	print("------------------------------------------")
-        print("Reformating data to fit different modules:")
-        print("------------------------------------------")
-        train_set_conv = dataset.data[{{},{1,3*128}}]
-        train_set_conv = torch.reshape(train_set_conv,dataset.data:size(1),3,128)
-        train_set_conv = train_set_conv:transpose(2,3)
-        train_set_fft  = dataset.data[{{},{3*128+1,3*128+13}}]
-
-        print("Conv module input dimensions:")
-        print(train_set_conv:size())
-        train_set_conv = train_set_conv:cuda()
-
-        print("FFT module input dimensions:")
-        print(train_set_fft:size())
-        train_set_fft  = train_set_fft:cuda()
-
-
+function M.test(dataset,network,hybrid)
 
     local hits = 0
     local fp = 0
@@ -41,6 +23,8 @@ function M.test(dataset,network)
     local fn_both_subs = 0
     local fn_a_subs = 0
     local fn_c_subs = 0
+
+    local fn_between = 0
 
     local fp_w_c = 0
     local fp_r_c = 0
@@ -57,23 +41,27 @@ function M.test(dataset,network)
 
     for i=2,dataset:size()-1 do
 
-	-- now
-	input =	{train_set_conv[{{i},{},{}}],train_set_fft[{{i},{}}]}
-	-- before
-	-- input = dataset.data[i]
+	-- Construct input based on the network type
+	local input = {}
+	if hybrid then
+		input = {dataset.convData[{{i},{},{}}],dataset.fftData[{{i},{}}]}
+	else
+		input = dataset.data[i]
+	end
 
 	-- Get the true label and our prediction
         local groundtruth = dataset.label[i][1]
         local prediction = network:forward(input)
 
-	-- DEBUG
---	print("prediction="..prediction[1].."; truth="..groundtruth)
+	local threshold = 0
+	--print "PREDICTION THRESHOLD = "..threshold
+	--print "------------------------"
 
         -- True label is artifact
         if groundtruth==-1 then
 
             -- Artifact successfully detected
-            if prediction[1]<0 then
+            if prediction[1]<threshold then
                 hits = hits + 1
 		average_hit_confidence = average_hit_confidence + math.abs(prediction[1])
 
@@ -81,6 +69,7 @@ function M.test(dataset,network)
             else
                 fn = fn + 1
 		average_miss_confidence = average_miss_confidence + math.abs(prediction[1])
+
 		-- Check the previous neighbour of the  missed artifact
 		if (dataset.label[i-1][1]==-1) then
 			fn_both_previous = fn_both_previous + 1
@@ -103,19 +92,24 @@ function M.test(dataset,network)
 			fn_c_subs = fn_c_subs + 1
 		end
 
+		-- Check if it's in between
+		if (dataset.label[i-1][1]==-1 and dataset.label[i+1][1]==-1) then
+			fn_between = fn_between + 1
+		end
+
 		-- DEBUG
 	--	print("Missed artifact number "..fn..":")
 	--	print("intersection ground truth sequence: "..dataset.label[i-1][1].." | "..dataset.label[i][1].." | "..dataset.label[i+1][1])
 	--	print("Andrea ground truth sequence:       "..dataset.label[i-1][2].." | "..dataset.label[i][2].." | "..dataset.label[i+1][2])
 	--	print("Christine ground truth sequence:    "..dataset.label[i-1][3].." | "..dataset.label[i][3].." | "..dataset.label[i+1][3])
-	--	print("predicted sequence:                 "..net:forward(dataset.data[i-1])[1].."| "..net:forward(dataset.data[i])[1].." | "..net:forward(dataset.data[i+1])[1])
+	--	print("predicted sequence:                 "..net:forward({dataset.convData[{{i-1},{},{}}],dataset.fftData[{{i-1},{}}]})[1].."| "..net:forward(input)[1].." | "..net:forward( {dataset.convData[{{i+1},{},{}}],dataset.fftData[{{i+1},{}}]})[1])
             end
 
 	-- True label is not an artifact
         else
 
             -- False positive
-            if prediction[1]<0 then
+            if prediction[1]<threshold then
 
 		-- increase overall number of false positives
                 fp = fp + 1
@@ -181,6 +175,9 @@ function M.test(dataset,network)
     print('Subsequent neighbour was classified as an artifact by Andrea: '..fn_a_subs)
     print('Subsequent neighbour was classified as an artifact by Christine: '..fn_c_subs)
     print('Subsequent neighbour was classified as an artifact by one of the raters: '..fn_a_subs+fn_c_subs-fn_both_subs)
+    print('----------------------------------------')
+    print('According to both raters, artifact is in between two other artifacts '..fn_between)
+ 
 
 
 end
@@ -205,6 +202,8 @@ function M.test2(dataset,network1,dataset2,network2)
     local fn_both_subs = 0
     local fn_a_subs = 0
     local fn_c_subs = 0
+
+    local fn_between = 0
 
     local fp_w_c = 0
     local fp_r_c = 0
@@ -264,12 +263,17 @@ function M.test2(dataset,network1,dataset2,network2)
 			fn_c_subs = fn_c_subs + 1
 		end
 
+		-- Check if it's in between
+                if (dataset.label[i-1][1]==-1 and dataset.label[i+1][1]==-1) then
+                        fn_between = fn_between + 1
+                end		
+
 		-- DEBUG
-	--	print("Missed artifact number "..fn..":")
-	--	print("intersection ground truth sequence: "..dataset.label[i-1][1].." | "..dataset.label[i][1].." | "..dataset.label[i+1][1])
-	--	print("Andrea ground truth sequence:       "..dataset.label[i-1][2].." | "..dataset.label[i][2].." | "..dataset.label[i+1][2])
-	--	print("Christine ground truth sequence:    "..dataset.label[i-1][3].." | "..dataset.label[i][3].." | "..dataset.label[i+1][3])
-	--	print("predicted sequence:                 "..net:forward(dataset.data[i-1])[1].."| "..net:forward(dataset.data[i])[1].." | "..net:forward(dataset.data[i+1])[1])
+		--print("Missed artifact number "..fn..":")
+		--print("intersection ground truth sequence: "..dataset.label[i-1][1].." | "..dataset.label[i][1].." | "..dataset.label[i+1][1])
+		--print("Andrea ground truth sequence:       "..dataset.label[i-1][2].." | "..dataset.label[i][2].." | "..dataset.label[i+1][2])
+		--print("Christine ground truth sequence:    "..dataset.label[i-1][3].." | "..dataset.label[i][3].." | "..dataset.label[i+1][3])
+		--print("predicted sequence:                 "..net:forward(dataset.data[i-1])[1].."| "..net:forward(dataset.data[i])[1].." | "..net:forward(dataset.data[i+1])[1])
             end
 
 	-- True label is not an artifact
@@ -342,7 +346,8 @@ function M.test2(dataset,network1,dataset2,network2)
     print('Subsequent neighbour was classified as an artifact by Andrea: '..fn_a_subs)
     print('Subsequent neighbour was classified as an artifact by Christine: '..fn_c_subs)
     print('Subsequent neighbour was classified as an artifact by one of the raters: '..fn_a_subs+fn_c_subs-fn_both_subs)
-
+    print('----------------------------------------')
+    print('According to both raters, artifact is in between two other artifacts '..fn_between)
 
 end
 

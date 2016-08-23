@@ -22,7 +22,7 @@ function M.load_dataset(filepath,nchannels,nlabels)
 	dataset.data   =  datasetCSV[{{},{2,datasetCSV:size(2)-nlabels}}]
 	dataset.label  =  datasetCSV[{{},{datasetCSV:size(2)-nlabels+1,datasetCSV:size(2)}}]
 
-	-- Reshape data sets to fit the convolutional  network architecture
+	-- Reshape data sets to fit the convolutional  network architecture if specified
 	if (nchannels>1) then
 		dataset.data = torch.reshape(dataset.data,nsamples,nchannels,nfeatures/nchannels)
 		dataset.data = dataset.data:transpose(2,3)
@@ -30,14 +30,6 @@ function M.load_dataset(filepath,nchannels,nlabels)
 	
 	-- Some other preparation for training of our convolutional neural network
 	dataset.data = dataset.data:double() -- convert the data from a ByteTensor to a DoubleTensor.
-	setmetatable(dataset,
-	    {__index = function(t, i)
-	                    return {t.data[i], t.label[i]}
-	                end}
-	);
-	function dataset:size()
-	    return self.data:size(1)
-	end
 	setmetatable(dataset,
 	    {__index = function(t, i)
 	                    return {t.data[i], t.label[i]}

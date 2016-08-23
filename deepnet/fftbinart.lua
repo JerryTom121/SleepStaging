@@ -10,7 +10,6 @@ local eval  = require 'lib.eval'
 -- Constants: not to be changed in general
 ------------------------------------------
 -- use CUDA
-CUDA = true
 nlabels = 3
 
 -----------------------
@@ -50,10 +49,8 @@ criterion = nn.SoftMarginCriterion()
 trainer = nn.StochasticGradient(net,criterion)
 trainer.learningRate = learning_rate
 trainer.maxIteration = max_iterations
-if CUDA then
-	net = net:cuda()
-	criterion = criterion:cuda()
-end
+net = net:cuda()
+criterion = criterion:cuda()
 
 
 ------------------------------------
@@ -87,10 +84,8 @@ if RETRAIN or extra_iterations>0 then
 	print(train_set.data:size())
 	print("Label dimensions:")
 	print(train_set.label:size())
-	if CUDA then
-		train_set.data  = train_set.data:cuda()
-		train_set.label = train_set.label:cuda()
-	end
+	train_set.data  = train_set.data:cuda()
+	train_set.label = train_set.label:cuda()
 end
 
 
@@ -142,10 +137,8 @@ print("Input dimensions:")
 print(test_set.data:size())
 print("Label dimensions:")
 print(test_set.label:size())
-if CUDA then
-	test_set.data  = test_set.data:cuda()
-	test_set.label = test_set.label:cuda()
-end
+test_set.data  = test_set.data:cuda()
+test_set.label = test_set.label:cuda()
 
 
 
@@ -154,4 +147,4 @@ end
 -----------------------------------------------------------
 print "------------------------------"
 print "Testing set artefakt detection"
-eval.test(test_set)
+eval.test(test_set,net,false)
