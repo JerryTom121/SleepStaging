@@ -15,8 +15,8 @@ retrain 	= false   -- Retrain or load the model
 numExp 		= '9'    -- Number of experiment
 augType		= '_rot' -- Artifact augmentation type
 maxIter		= 9	 -- Number of train iterations
-extraIter 	= 0      -- Additional iterations
-learnRate	= 0.0003-- Learning rate
+extraIter 	= 2      -- Additional iterations
+learnRate	= 0.0001-- Learning rate
 learnRateDecay  = 0.2	 -- /(1+numIter*decay)
 
 --------------------------------------------------------
@@ -42,13 +42,13 @@ CONV_L2_featureMaps = 12
 CONV_L2_kernel      = 10
 CONV_L2_stride      = 1
 -- Output
-CONV_output = 30
+CONV_output = 40
 -- Fourier module
 -----------------
 -- Layer 1
 FFT_L1 = 30
 -- Output
-FFT_output = 10
+FFT_output = 20
 
 
 -------------------------------------------------------
@@ -87,6 +87,7 @@ mix = nn.ParallelTable()
 net = nn.Sequential()
 	 :add(mix)
          :add(nn.JoinTable(1))
+	 :add(nn.Linear(CONV_output+FFT_output,CONV_output+FFT_output))
 	 :add(nn.Linear(CONV_output+FFT_output,1))
          :add(nn.View(-1))
 
@@ -159,11 +160,11 @@ if retrain then
 	trainer:train(trainSet.convData,trainSet.fftData,trainSet.label)
 	print('Time elapsed for training neural net: ' .. timer:time().real .. ' seconds\n')
 	-- Save the model
-	torch.save('models/binart'..numExp, net)
+	torch.save('models/mixbinart'..numExp, net)
 else
 	print('---------------------------------')
         print('Loading already saved model')
-	net = torch.load('models/binart'..numExp)
+	net = torch.load('models/mixbinart'..numExp)
 	if extraIter>0 then
 		print('----------------------')
 		print('Performing additional '..extraIter..' iterations')
@@ -173,7 +174,7 @@ else
 		trainer.learningRateDecay = learnRateDecay
 		trainer:train(trainSet.convData,trainSet.fftData,trainSet.label)
 		-- Save the model
-		torch.save('models/binart'..numExp, net)
+		torch.save('models/mixbinart'..numExp, net)
 	else
 		print('No additional iterations...')
 	end
