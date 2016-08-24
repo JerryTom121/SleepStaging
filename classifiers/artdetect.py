@@ -36,7 +36,7 @@ np.set_printoptions(precision=3)
 # --------------------------------------------------------------------------- #
 # ---------------------- Experimental setup --------------------------------- #
 # --------------------------------------------------------------------------- #
-NEXP = '5'
+NEXP = str(sys.argv[1])
 aug  = '_aug'
 CSV_FOLDER = '/home/djordje/Desktop/CSVdata/'
 # --------------------------------------------------------------------------- #
@@ -45,14 +45,20 @@ CSV_FOLDER = '/home/djordje/Desktop/CSVdata/'
 train_mat = np.genfromtxt(CSV_FOLDER+'train_exp'+NEXP+aug+'.csv', skip_header=0, dtype=str, comments="4s",delimiter=',')
 test_mat  = np.genfromtxt(CSV_FOLDER+'test_exp'+NEXP+'.csv', skip_header=0, dtype=str, comments="4s",delimiter=',')
 # Training set
+print "Load training data..."
 train_data  = (train_mat[:,1:-1]).astype(float)
 train_label = (train_mat[:,-1]).astype(float)
+print "Shape is: "
+print np.shape(train_data)
 # Testing set
-print "Load testing data..."
+print "Load validation data..."
 test_data  = (test_mat[:,1:-3]).astype(float)
 test_label = (test_mat[:,-3]).astype(float)
 print "Shape is: "
 print np.shape(test_data)
+print "----------------------------"
+print "-- The augmentation type: " + aug 
+print "----------------------------"
 # --------------------------------------------------------------------------- #
 # ---------------------- Choose classifier ---------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -60,8 +66,8 @@ print np.shape(test_data)
 #clf  = RandomForestClassifier();                  print "Random Forest..."
 #clf  = GradientBoostingClassifier(n_estimators=1000)
 #clf  = LogisticRegression();                      print"Logistic Regression..."
-clf  = AdaBoostClassifier(n_estimators=200);       print"AdaBoost - 200"
-#clf = SVC(C=5)
+#clf  = AdaBoostClassifier(n_estimators=200);       print"AdaBoost - 200"
+clf = SVC(C=5)
 # --------------------------------------------------------------------------- #
 # ---------------------- Test classification -------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -70,6 +76,6 @@ clf.fit(train_data,train_label)
 # Evaluate predictions
 print "Evaluate on test set"
 sleeplib.evaluate(clf.predict(test_data),test_label)
-print "Evaluate on train set"
-sleeplib.evaluate(clf.predict(train_data),train_label)
+#print "Evaluate on train set"
+#sleeplib.evaluate(clf.predict(train_data),train_label)
 

@@ -45,9 +45,9 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
 
     # Select feature extractor
     feature_extractors = {
-      'raw_signal': raw_signal_features,
-      'fft': fft_features,
-      'mixed': mixed_features,
+      'temporal': raw_signal_features,
+      'spectral': fft_features,
+      'hybrid': mixed_features,
 
       'statistical': statistical_features,
       'hybrid': hybrid_features,
@@ -94,7 +94,7 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
                 print "Number of artifacts is: " + str(np.count_nonzero(tmp[tmp=='-1']))
                 
                 # Debug
-                print file_labels
+                # print file_labels
 
                 # Accumulating features and labels
                 features = np.vstack([features, file_features]) if np.shape(features)[0] else file_features
@@ -232,16 +232,21 @@ def fft_features(file_path,interval_size=4,exchange_eeg=False):
     # Array to contain the resulting preprocessed data:
     # rows are 4s intervals and columns are features/bucket energies,
     # the last column is energy of EMG
-    features = np.zeros((epochs, len(eeg1_bin_idx) + len(eeg2_bin_idx) + 1))
+    features = np.zeros((int(epochs), len(eeg1_bin_idx) + len(eeg2_bin_idx) + 1))
    # artefakt_features = np.zeros((epochs,1))
     # Perform FFT
     for i in range(int(epochs)):
+
+        # Get signals of current epoch
+        eeg1_epoch = eeg1[int(samples_per_epoch) * i: int(samples_per_epoch) * (i + 1)]
+        eeg2_epoch = eeg2[int(samples_per_epoch) * i: int(samples_per_epoch) * (i + 1)]
+        emg_epoch  = emg[int(samples_per_epoch)  * i: int(samples_per_epoch) * (i + 1)]
         # Compute the FFT on the EEG  and EMG data. Using real-fft to get smaller
         # output vector. Converting the fourier coefficients to energies by taking
         # the squared absolute value on the (complex) fourier coefficient.
-        eeg1_pos_spectrum = np.abs(fft.rfft(eeg1[samples_per_epoch * i: samples_per_epoch * (i + 1)])) ** 2
-        eeg2_pos_spectrum = np.abs(fft.rfft(eeg2[samples_per_epoch * i: samples_per_epoch * (i + 1)])) ** 2
-        emg_pos_spectrum  = np.abs(fft.rfft(emg[samples_per_epoch * i: samples_per_epoch * (i + 1)])) ** 2
+        eeg1_pos_spectrum = np.abs(fft.rfft(eeg1_epoch)) ** 2
+        eeg2_pos_spectrum = np.abs(fft.rfft(eeg2_epoch)) ** 2
+        emg_pos_spectrum  = np.abs(fft.rfft(emg_epoch)) ** 2
         # Compute the sums over the frequency buckets of the EEG signal.
         for j in range(len(eeg1_bin_idx)):
             features[i, j] = np.sum(eeg1_pos_spectrum[eeg1_bin_idx[j]])
