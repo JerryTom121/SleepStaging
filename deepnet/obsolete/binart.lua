@@ -1,10 +1,12 @@
 require 'nn'
 require 'paths'
-require 'csvigo'
 require 'cunn'
 require 'gnuplot'
 local inout = require 'lib.inout'
 local eval  = require 'lib.eval'
+
+
+cutorch.setDevice(2)
 
 ------------------------------------------
 -- Constants: not to be changed in general
@@ -26,7 +28,7 @@ nlabels = 3
 -- Specify whether we should retrain the model or use the previous one
 RETRAIN 	 = true
 -- The number of the experiment to be performed
-exp 		 = '6'
+exp 		 = '4'
 -- The augmentation type of the selected experiment
 aug 		 = '_rot_mir'
 
@@ -34,7 +36,7 @@ aug 		 = '_rot_mir'
 -- Architectural variables
 --------------------------
 -- The number of iterations to be performed in case we are retraining the network
-max_iterations = 6
+max_iterations = 5
 -- The number of additional iterations to perform in case we are using the previous network
 extra_iterations = 0
 -- The learning rate used during the network training

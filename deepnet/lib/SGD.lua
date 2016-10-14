@@ -1,3 +1,5 @@
+require 'optim'
+
 local SGD = torch.class('nn.SGD')
 
 function SGD:__init(module, criterion)
@@ -25,6 +27,9 @@ function SGD:train(convnet_data,fft_data,labels)
          shuffledIndices[t] = t
       end
    end
+   
+   -- confusion
+   confusion = optim.ConfusionMatrix({1,2})
 
    print("# SGD: training")
 
@@ -43,6 +48,12 @@ function SGD:train(convnet_data,fft_data,labels)
          if self.hookExample then
             self.hookExample(self, example)
          end
+
+	 -- update confusion
+         if (module.output[1]<0)  then pred = 1  else pred = 2  end
+         if (target[1]<0)         then label = 1 else label = 2 end
+         confusion:add(pred,label)
+
       end
 
       currentError = currentError / nsamples
@@ -54,7 +65,11 @@ function SGD:train(convnet_data,fft_data,labels)
       if self.verbose then
 	 print('# learning rate was = '..currentLearningRate)
          print("# current error = " .. currentError)
+	 print(confusion)
+	 print(confusion.totalValid)
+	 confusion:zero()
       end
+
       iteration = iteration + 1
       currentLearningRate = self.learningRate/(1+iteration*self.learningRateDecay)
       if self.maxIteration > 0 and iteration > self.maxIteration then

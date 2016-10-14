@@ -36,8 +36,12 @@ function M.load_dataset(filepath,nchannels,nlabels)
 	                end}
 	);
 	function dataset:size()
-	    return self.data:size(1)
+	    return self.label:size(1)
 	end
+	
+	-- move to CUDA
+	dataset.data  = dataset.data:cuda()
+	dataset.label = dataset.label:cuda()
 
 	return dataset
 end
