@@ -74,9 +74,6 @@ if RETRAIN or extra_iterations>0 then
 	-- Load training data sets from .CSV files of selected experiment
 	-----------------------------------------------------------------
 	train_set = inout.load_dataset('../../CSV/train_exp'..exp..aug..'.csv',1,1)
-	------------------------------------
-	-------------- DEBUG ---------------
-	------------------------------------
 	print("---------------------")
 	print("Training data loaded:")
 	print("---------------------")

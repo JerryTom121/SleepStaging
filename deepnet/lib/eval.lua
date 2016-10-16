@@ -8,7 +8,7 @@ local M = {};
 -- Evaluate the efficency in discovering artifacts
 -- @param dataset testing data set
 --------------------------------------------------
-function M.test(dataset,network,hybrid)
+function M.test(dataset,network)
 
     local hits = 0
     local fp = 0
@@ -39,19 +39,20 @@ function M.test(dataset,network,hybrid)
     local average_hit_confidence  = 0
     local average_miss_confidence = 0
 
+    network:evaluate()
+
     for i=2,dataset:size()-1 do
 
 	-- Construct input based on the network type
 	local input = {}
-	if hybrid then
-		input = {dataset.convData[{{i},{},{}}],dataset.fftData[{{i},{}}]}
-	else
-		input = dataset.data[i]
-	end
+	input = dataset.data[i]
 
 	-- Get the true label and our prediction
         local groundtruth = dataset.label[i][1]
         local prediction = network:forward(input)
+
+	-- added for soft max version
+	if prediction[2]<prediction[1] then pred=-1 else pred=1 end
 
 	local threshold = 0
 	--print "PREDICTION THRESHOLD = "..threshold
@@ -61,14 +62,14 @@ function M.test(dataset,network,hybrid)
         if groundtruth==-1 then
 
             -- Artifact successfully detected
-            if prediction[1]<threshold then
+            if pred==-1 then
                 hits = hits + 1
-		average_hit_confidence = average_hit_confidence + math.abs(prediction[1])
+		average_hit_confidence = average_hit_confidence + math.abs(prediction[2])
 
             -- Artifact not detected
             else
                 fn = fn + 1
-		average_miss_confidence = average_miss_confidence + math.abs(prediction[1])
+		average_miss_confidence = average_miss_confidence + math.abs(prediction[2])
 
 		-- Check the previous neighbour of the  missed artifact
 		if (dataset.label[i-1][1]==-1) then
@@ -109,7 +110,7 @@ function M.test(dataset,network,hybrid)
         else
 
             -- False positive
-            if prediction[1]<threshold then
+            if pred==-1 then
 
 		-- increase overall number of false positives
                 fp = fp + 1
@@ -218,29 +219,30 @@ function M.test2(dataset,network1,dataset2,network2)
     local average_hit_confidence  = 0
     local average_miss_confidence = 0
 
+    network1:evaluate()
+    network2:evaluate()
+
     for i=2,dataset:size()-1 do
 
 	-- Get the true label and our prediction
         local groundtruth = dataset.label[i][1]
         local prediction1 = network1:forward(dataset.data[i])
 	local prediction2 = network2:forward(dataset2.data[i])
-	local prediction  = (prediction1[1]+prediction2[1])/2
 
-	-- DEBUG
---	print("prediction="..prediction[1].."; truth="..groundtruth)
+	if prediction1[2]+prediction2[2]<prediction1[1]+prediction1[2] then pred=-1 else pred=1 end
 
         -- True label is artifact
         if groundtruth==-1 then
 
             -- Artifact successfully detected
-            if prediction<0 then
+            if pred==-1 then
                 hits = hits + 1
-		average_hit_confidence = average_hit_confidence + math.abs(prediction)
+		average_hit_confidence = average_hit_confidence + math.abs(prediction1[2]+prediction2[2])
 
             -- Artifact not detected
             else
                 fn = fn + 1
-		average_miss_confidence = average_miss_confidence + math.abs(prediction)
+		average_miss_confidence = average_miss_confidence + math.abs(prediction1[2]+prediction2[2])
 		-- Check the previous neighbour of the  missed artifact
 		if (dataset.label[i-1][1]==-1) then
 			fn_both_previous = fn_both_previous + 1
@@ -280,7 +282,7 @@ function M.test2(dataset,network1,dataset2,network2)
         else
 
             -- False positive
-            if prediction<0 then
+            if pred==-1 then
 
 		-- increase overall number of false positives
                 fp = fp + 1

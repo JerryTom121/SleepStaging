@@ -1,9 +1,9 @@
 require 'nn'
 require 'paths'
-require 'csvigo'
 require 'cunn'
 require 'gnuplot'
 require 'lib.SGD'
+require 'lib.MBGD'
 local inout = require 'lib.inout'
 local eval  = require 'lib.eval'
 
@@ -11,13 +11,13 @@ local eval  = require 'lib.eval'
 -------------------------------------------------------
 -- Experiment variables
 -------------------------------------------------------
-retrain 	= false   -- Retrain or load the model
+retrain 	= true   -- Retrain or load the model
 numExp 		= '9'    -- Number of experiment
 augType		= '_rot' -- Artifact augmentation type
-maxIter		= 9	 -- Number of train iterations
-extraIter 	= 2      -- Additional iterations
-learnRate	= 0.0001-- Learning rate
-learnRateDecay  = 0.2	 -- /(1+numIter*decay)
+maxIter		= 5	 -- Number of train iterations
+extraIter 	= 0      -- Additional iterations
+learnRate	= 0.001 -- Learning rate
+learnRateDecay  = 0.1	 -- /(1+numIter*decay)
 
 --------------------------------------------------------
 -- Constants: not to be changed in general
@@ -34,11 +34,11 @@ numFFTfeat      = 13     -- number of fourier features
 -- Convolution module
 ---------------------
 -- Layer 1 (temporal convolution) parameters
-CONV_L1_featureMaps = 8
+CONV_L1_featureMaps = 5
 CONV_L1_kernel      = 20
 CONV_L1_stride      = 1
 -- Layer 2 (temporal convolution) parameters
-CONV_L2_featureMaps = 12
+CONV_L2_featureMaps = 5
 CONV_L2_kernel      = 10
 CONV_L2_stride      = 1
 -- Output
@@ -62,23 +62,32 @@ signal = epochSize
 convnet:add(nn.TemporalConvolution(numChan,CONV_L1_featureMaps,CONV_L1_kernel,CONV_L1_stride))
 convnet:add(nn.ReLU()) 
 signal  = (signal-CONV_L1_kernel)/CONV_L1_stride + 1 
+-- Add Max pooling layer
+convnet:add(nn.TemporalMaxPooling(3,2))
+signal =  (signal-3)/2+1
+print(signal)
 -- Add Layer 2
 convnet:add(nn.TemporalConvolution(CONV_L1_featureMaps,CONV_L2_featureMaps,CONV_L2_kernel,CONV_L2_stride))
 convnet:add(nn.ReLU())
 signal  = (signal-CONV_L2_kernel)/CONV_L2_stride + 1 
+-- Add Max pooling layer:
+convnet:add(nn.TemporalMaxPooling(5,4))
+signal =  (signal-5)/4+1
+print(signal)
 -- Add Layer 3: fully connected layer
 convnet:add(nn.View(CONV_L2_featureMaps*signal))
-convnet:add(nn.Linear(CONV_L2_featureMaps*signal,CONV_output))
-convnet:add(nn.View(-1))
+--convnet:add(nn.Linear(CONV_L2_featureMaps*signal,CONV_output))
+--convnet:add(nn.View(-1))
 -- Fourier module
 -----------------
 fftnet = nn.Sequential()
+fftnet:add(nn.View(numFFTfeat))
 -- Add Layer 1:
-fftnet:add(nn.Linear(numFFTfeat,FFT_L1))
-fftnet:add(nn.ReLU())
+--fftnet:add(nn.Linear(numFFTfeat,FFT_L1))
+--fftnet:add(nn.ReLU())
 -- Output
-fftnet:add(nn.Linear(FFT_L1,FFT_output))
-fftnet:add(nn.View(-1))
+--fftnet:add(nn.Linear(FFT_L1,FFT_output))
+--fftnet:add(nn.View(-1))
 -- Network construction
 -----------------------
 mix = nn.ParallelTable()
@@ -87,8 +96,9 @@ mix = nn.ParallelTable()
 net = nn.Sequential()
 	 :add(mix)
          :add(nn.JoinTable(1))
-	 :add(nn.Linear(CONV_output+FFT_output,CONV_output+FFT_output))
-	 :add(nn.Linear(CONV_output+FFT_output,1))
+	 :add(nn.Linear(CONV_L2_featureMaps*signal+numFFTfeat,200))
+	 :add(nn.Linear(200,100))
+	 :add(nn.Linear(100,1))
          :add(nn.View(-1))
 
 
@@ -141,6 +151,7 @@ end
 ---------------------------------------------------
 criterion = nn.SoftMarginCriterion()
 trainer = nn.SGD(net,criterion)
+--trainer = nn.MBGD(net,criterion)
 trainer.learningRate = learnRate
 trainer.maxIteration = maxIter
 trainer.learningRateDecay = learnRateDecay
@@ -168,10 +179,7 @@ else
 	if extraIter>0 then
 		print('----------------------')
 		print('Performing additional '..extraIter..' iterations')
-		trainer = nn.SGD(net, criterion)
-		trainer.learningRate = learnRate
 		trainer.maxIteration = extraIter
-		trainer.learningRateDecay = learnRateDecay
 		trainer:train(trainSet.convData,trainSet.fftData,trainSet.label)
 		-- Save the model
 		torch.save('models/mixbinart'..numExp, net)
