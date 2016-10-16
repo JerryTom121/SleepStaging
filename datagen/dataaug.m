@@ -1,8 +1,9 @@
 % User Defined Variable - watch out, these are coupled !!!
-EXP = '10';
+EXP = '11';
 ROTATION = 0;
 MIRROR   = 0;
 % experiment info
+%signal_length = 14;
 %signal_length = 65;
 signal_length = 128;
 %signal_length = 256;

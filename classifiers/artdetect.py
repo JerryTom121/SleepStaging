@@ -1,6 +1,8 @@
 """
 Script used for testing the artefakt identification.
 Calls functions from 'artlib' which try to detect artefakts.
+
+@param num_exp => the number of experiment
 """
 import sys; sys.path.insert(0, '../library')
 from edfplus import load_edf 
@@ -65,9 +67,9 @@ print "----------------------------"
 # Random forest
 #clf  = RandomForestClassifier();                  print "Random Forest..."
 #clf  = GradientBoostingClassifier(n_estimators=1000)
-#clf  = LogisticRegression();                      print"Logistic Regression..."
+clf  = LogisticRegression();                      print"Logistic Regression..."
 #clf  = AdaBoostClassifier(n_estimators=200);       print"AdaBoost - 200"
-clf = SVC(C=5)
+#clf = SVC(C=5);										print"SVM..."
 # --------------------------------------------------------------------------- #
 # ---------------------- Test classification -------------------------------- #
 # --------------------------------------------------------------------------- #

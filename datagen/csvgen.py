@@ -2,7 +2,7 @@
 Data Preparation. Based on the designed experiment, the script stacks features and labels, and then writes them 
 into .csv files which are then used for learning and validation;.csv files get their names based on the experiment number.
 
-@param num_exp the script takes the number of experiment to be evaluated as command line argument
+@param num_exp => the number of experiment
 
 """
 import numpy as np

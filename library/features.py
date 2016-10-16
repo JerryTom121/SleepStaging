@@ -21,7 +21,9 @@ import scipy
 
 from scipy.spatial.distance import euclidean
 from fastdtw import fastdtw
-
+# speech recognition features
+sys.path.append(os.path.abspath('/home/djordje/Software/python_speech_features'))
+from python_speech_features import mfcc,logfbank,fbank
 
 def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval=4,exchange_eeg=False):
     '''Extract features and corresponding labels from the given files.
@@ -48,6 +50,7 @@ def extract_features(feature_extractor_id,data_folder,file_sets,mapping,interval
       'temporal': raw_signal_features,
       'spectral': fft_features,
       'hybrid': mixed_features,
+      'mel': mel_features,
 
       'statistical': statistical_features,
       'hybrid': hybrid_features,
@@ -279,9 +282,48 @@ def mixed_features(file_path,interval_size=4,exchange_eeg=False, ds_factor=4):
     features = np.hstack([rawfeatures,fftfeatures])
     # return
     return features
+
+
+def mel_features(file_path,interval_size=4,exchange_eeg=False):
+    '''
+    file_path:     => Path to the .edf file
+    interval_size: => How many seconds does each epoch last
+    exchange_eeg:  => Swap EEG1 and EEG2 signal
+    '''
+    # Get Raw Data and Sampling Characteristics
+    data              = load_edf(file_path)
+    sample_rate       = data.sample_rate
+    samples_per_epoch = interval_size * sample_rate
+    eeg1 = data.X[data.chan_lab.index('EEG1')]
+    eeg2 = data.X[data.chan_lab.index('EEG2')]
+    emg  = data.X[data.chan_lab.index('EMG')]
+    total_size = len(eeg1)
+    epochs = total_size / samples_per_epoch
+    # Create feature matrix from mel frequency spectrum
+    X = []
+    for i in range(int(epochs)):
+        # Get signals of current epoch
+        eeg1_epoch = eeg1[int(samples_per_epoch) * i: int(samples_per_epoch) * (i + 1)]
+        eeg2_epoch = eeg2[int(samples_per_epoch) * i: int(samples_per_epoch) * (i + 1)]
+        emg_epoch  = emg[int(samples_per_epoch)  * i: int(samples_per_epoch) * (i + 1)]
+        # Extract mel features
+        matrix,features = fbank(eeg1_epoch,sample_rate,winlen=0.3,winstep=0.3)
+        # Stack features
+        X = np.vstack([X, features]) if np.shape(X)[0] else features
+
+    scaler = preprocessing.RobustScaler()
+    X = scaler.fit_transform(X)
+
+    print X
+
+    return X
 # ----------------------------------------------------------------------------------------------- #
 # ----------------------------------------------------------------------------------------------- #
 # ----------------------------------------------------------------------------------------------- #
+
+
+
+
 
 
 
