@@ -1,12 +1,12 @@
 % User Defined Variable - watch out, these are coupled !!!
-EXP = '11';
+EXP = '14';
 ROTATION = 0;
 MIRROR   = 0;
 % experiment info
 %signal_length = 14;
 %signal_length = 65;
-signal_length = 128;
-%signal_length = 256;
+%signal_length = 128;
+signal_length = 256;
 num_channels = 3;
 % Path to CSV folder
 CSV_path = '/home/djordje/Desktop/CSVdata/';
@@ -23,7 +23,10 @@ size(artmat)
 % ----------------------------------------------------------------------- %
 % ------------------------ DATA AUGMENTATION ---------------------------- %
 % ----------------------------------------------------------------------- %
+
+% ------------------------------------
 % augment artefakt matrix by mirroring
+% ------------------------------------
 if MIRROR
     % create X mirrored artefakt matrix
     artmatXmirror = artmat;
@@ -43,7 +46,8 @@ if MIRROR
     suffix = strcat('_mir',suffix);
 end
 size(artmat)
-% shift displacements based on unfairness ration and signal length
+
+% calc. shift displacements based on unfairness ration and signal length
 ratio = round(length(labels)/size(artmat,1));
 shift_size = max(1,round(signal_length/ratio));
 
@@ -60,6 +64,7 @@ for i = 1:ratio-1
    end
    artmat = [artmat;new];
 end
+
 if ROTATION
     suffix = strcat('_rot',suffix);
 else
@@ -73,6 +78,10 @@ size(data_augmented)
 % ----------------------------------------------------------------------- %
 % ------------------------ DATA SHUFFLING ------------------------------- %
 % ----------------------------------------------------------------------- %
+rng(3);
+display('Random permutation checking...');
+display(randperm(10));
+display('------------------------------');
 data_augmented = data_augmented(randperm(size(data_augmented,1)),:);
 
 % ----------------------------------------------------------------------- %

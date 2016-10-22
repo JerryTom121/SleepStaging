@@ -41,6 +41,7 @@ np.set_printoptions(precision=3)
 NEXP = str(sys.argv[1])
 aug  = '_aug'
 CSV_FOLDER = '/home/djordje/Desktop/CSVdata/'
+print CSV_FOLDER+'train_exp'+NEXP+aug+'.csv'
 # --------------------------------------------------------------------------- #
 # ---------------------- Read data ------------------------------------------ #
 # --------------------------------------------------------------------------- #

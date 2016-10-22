@@ -20,11 +20,12 @@ class Experiment(object):
         self.interval   = int(config.get('Global', 'Interval'))
 
         # Initialize experiment parameters
-        self.split    = config.get('Experiment'+exp_num, 'split')=='True'
-        self.rndsplit = config.get('Experiment'+exp_num, 'random_split')=='True'
-        self.trainset = ast.literal_eval(config.get('Experiment'+exp_num, 'trainset'))
-        self.testset  = ast.literal_eval(config.get('Experiment'+exp_num, 'testset'))
-        self.extrain  = config.get('Experiment'+exp_num, 'exchange_EEG_trainset')=='True'
-        self.extest   = config.get('Experiment'+exp_num, 'exchange_EEG_trainset')=='True'
-        self.artrem   = config.get('Experiment'+exp_num, 'artifact_removal')=='True'
-        self.feat_ext = config.get('Experiment'+exp_num, 'feature_extractor')
+        self.split       = config.get('Experiment'+exp_num, 'split')=='True'
+        self.rndsplit    = config.get('Experiment'+exp_num, 'random_split')=='True'
+        self.trainset    = ast.literal_eval(config.get('Experiment'+exp_num, 'trainset'))
+        self.testset     = ast.literal_eval(config.get('Experiment'+exp_num, 'testset'))
+        self.extrain     = config.get('Experiment'+exp_num, 'exchange_EEG_trainset')=='True'
+        self.extest      = config.get('Experiment'+exp_num, 'exchange_EEG_trainset')=='True'
+        self.artrem      = config.get('Experiment'+exp_num, 'artifact_removal')=='True'
+        self.feat_ext    = config.get('Experiment'+exp_num, 'feature_extractor')
+        self.ds_factor   = int(config.get('Experiment'+exp_num, 'downsampling'))
