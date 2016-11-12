@@ -16,13 +16,22 @@ MAPPING = { "w": +1, "n": +1, "r": +1,                               # normal
 Exp1 = Experiment('1') # Experiment 1 is reserved for the server
 Exp2 = Experiment('2') # Experiment 2 is reserved for the server
 # --------------------------------------------------------------------------- #
+# --------- 'Dirty hack' to avoid permission issues... ---------------------- #
+# --------------------------------------------------------------------------- #
+Exp1.eeg_folder=''
+Exp2.eeg_folder=''
+Exp1.testset = []
+Exp1.testset.append(sys.argv[1])
+Exp2.testset = []
+Exp2.testset.append(sys.argv[1])
+# --------------------------------------------------------------------------- #
 # ----------------- Extract features and labels ----------------------------- #
 # --------------------------------------------------------------------------- #
 # part 1
-scaler = joblib.load('datascale/temporal_scaler.pkl')
-[X,Y] = extract_features(Exp1,MAPPING,Exp1.testset,scaler)
-idx_X = np.linspace(1, len(X), len(X)).astype(np.int)
-data = np.c_[idx_Xt, Xt, Yt]
+scaler   = joblib.load('datascale/temporal_scaler.pkl')
+[X,Y,s]  = extract_features(Exp1,MAPPING,Exp1.testset,scaler)
+idx_X    = np.linspace(1, len(X), len(X)).astype(np.int)
+data     = np.c_[idx_X, X, Y]
 np.savetxt('../../generated_data/temporal_data.csv', data, fmt='%s', delimiter=',')
 # part 2
 ##### [X,Y] = extract_features(Exp2,MAPPING,Exp2.testset)

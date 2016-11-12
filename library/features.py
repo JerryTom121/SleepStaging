@@ -53,6 +53,7 @@ def extract_features(Exp,mapping,file_sets,scaler=None):
     features = []
     labels   = []
 
+    print file_sets
     for file_set in file_sets:
         # For each file set
         [file_folder,file_id] = str.rsplit(file_set,'/',1)
