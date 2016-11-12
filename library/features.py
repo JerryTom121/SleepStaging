@@ -2,25 +2,28 @@
 Part of the eeg library which deals with 
 feature and corresponding label extraction.
 '''
+
 import os
 import sys
 from edfplus import load_edf  #https://github.com/breuderink/eegtools/blob/master/eegtools/io/edfplus.py
 import numpy as np
 from scipy import signal
 from sklearn import preprocessing
+from preprocessing import RawDataNormalizer,FourierEnergyNormalizer
 # speech recognition features
-sys.path.append(os.path.abspath('/home/djordje/Software/python_speech_features'))
-from python_speech_features import mfcc,logfbank,fbank
+#sys.path.append(os.path.abspath('/home/djordje/Software/python_speech_features'))
+#from python_speech_features import mfcc,logfbank,fbank
 
 
 
-def extract_features(Exp,mapping,file_sets):
+def extract_features(Exp,mapping,file_sets,scaler=None):
     '''
     #Description: Extract features and corresponding labels from the given files.
     -----------------------------------------------------------------------------
     @param Exp       => an object which contains the parameters of the experiment
-    @param mapping   => shows how to map raw labels into labels which will be used for machine learning
+    @param mapping   => shows how to map raw labels into labels which will be used for learning
     @param file_sets => path to raw data files from where we extract labels and features
+    @param scaler    => precomputed scaler: used in case we are extracting features from test data
     -----------------------------------------------------------------------------
     @return => stacked matrices of features and labels
     -----------------------------------------------------------------------------
@@ -111,27 +114,21 @@ def extract_features(Exp,mapping,file_sets):
                 # ------------
                 print "File "+f+" processed and added to the dataset."
                 print "--------------------------------------------------"
-    # ---------------------
-    # Feature normalization
-    # ---------------------
-    # use robust scaling
-    scaler = preprocessing.RobustScaler()
-    print "## The shape of final feature matrix is " + str(np.shape(features))
-    # scaling slightly differs depending on the chosen feature extractor
-    if feature_extractor_id=='temporal' or feature_extractor_id=='fourier':
-        # get signal length
-        signal_length = np.shape(features)[1]/3
-        print "We have 3 channels, each of length: " + str(signal_length)
-        # normalize corresponding channels
-        features[:,0*signal_length:1*signal_length] = scaler.fit_transform(features[:,0*signal_length:1*signal_length])
-        features[:,1*signal_length:2*signal_length] = scaler.fit_transform(features[:,1*signal_length:2*signal_length])
-        features[:,2*signal_length:3*signal_length] = scaler.fit_transform(features[:,2*signal_length:3*signal_length])
-        print "## The shape of final feature matrix is " + str(np.shape(features))
-    # fourier spectrum energy bands features
-    if feature_extractor_id=='fourier_energy':
+    # if there are files..
+    if np.shape(features)[0]>0:
+        # Select normalizer if not already selected
+        if scaler==None:
+            print "## Instantiating new scaler.."
+            if feature_extractor_id=='temporal' or feature_extractor_id=='fourier':
+                scaler   = RawDataNormalizer()
+            elif feature_extractor_id=='fourier_energy':
+                scaler   = FourierEnergyNormalizer()
+        else:
+            print "## Using scaler passed as argument.."
+        # Perform normalization
         features = scaler.fit_transform(features)
 
-    return [features,labels]
+    return [features,labels,scaler]
 
 
 

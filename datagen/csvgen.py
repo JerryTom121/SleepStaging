@@ -12,6 +12,7 @@ from sklearn.cross_validation import train_test_split
 from Experiment import Experiment 
 from features import extract_features
 from artlib import remove_artefakts 
+from sklearn.externals import joblib
 # --------------------------------------------------------------------------- #
 # -- Read command line arguments -------------------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -30,10 +31,11 @@ print "## Performing data generation for experiment number:  " + str(param1)
 # --------------------------------------------------------------------------- #
 # ----------------- Extract features and labels ----------------------------- #
 # --------------------------------------------------------------------------- #
+# Initial scaler is nul
+scaler_train = None
 print "## Reading training and validation data..."
 if Exp.split:
     # Get both training and validation data
-
     [features,labels] = extract_features(Exp,MAPPING,Exp.trainset)
     # Remove artefakts if requested by the experiment
     if Exp.artrem:
@@ -51,9 +53,16 @@ if Exp.split:
 
 else:
     # Get training data
-    [Xt,Yt] = extract_features(Exp,MAPPING,Exp.trainset)
+    [Xt,Yt,scaler_train] = extract_features(Exp,MAPPING,Exp.trainset)
+    # Save or load scaler
+    if scaler_train==None:
+        print "## Load scaler -- no training data...."
+        joblib.load('scaler_'+param1+'.pkl') 
+    else:
+        print "## Save scaler -- learned from training data...."
+        joblib.dump(scaler_train, 'scaler_'+param1+'.pkl')
     # Get validation data
-    [Xv,Yv] = extract_features(Exp,MAPPING,Exp.testset)
+    [Xv,Yv,scaler_test]  = extract_features(Exp,MAPPING,Exp.testset,scaler_train)
     # Remove artefakts if requested by the experiment
     if Exp.artrem:
         print '## Removing artifacts from data as specified...'
@@ -61,7 +70,8 @@ else:
         [Xv,Yv] = remove_artefakts(Xv,Yv)
 # PAY ATTENTION !!! Allow only one label column fo training data; We can have multiple columns
 # in validation data for derriving different statistics
-Yt = Yt[:,0]
+if np.shape(Yt)[0]>0:
+    Yt = Yt[:,0]
 # Adding the id-column to the data
 idx_Xt = np.linspace(1, len(Xt), len(Xt)).astype(np.int);
 idx_Xv = np.linspace(1 + len(Xt), len(Xt) + len(Xv), len(Xv)).astype(np.int);
