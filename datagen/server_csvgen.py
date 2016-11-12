@@ -3,6 +3,7 @@ import sys
 sys.path.insert(0, '../library')
 from Experiment import Experiment 
 from features import extract_features
+from sklearn.externals import joblib
 # --------------------------------------------------------------------------- #
 # -- Choose mapping based on the classification goal: ----------------------- #
 # -- do we want to detect anomalies or classify sleeping stages ------------- #
@@ -18,12 +19,13 @@ Exp2 = Experiment('2') # Experiment 2 is reserved for the server
 # ----------------- Extract features and labels ----------------------------- #
 # --------------------------------------------------------------------------- #
 # part 1
-[X,Y] = extract_features(Exp1,MAPPING,Exp1.testset)
-idx_X = np.linspace(1, len(X), len(X)).astype(np.int);
+scaler = joblib.load('datascale/temporal_scaler.pkl')
+[X,Y] = extract_features(Exp1,MAPPING,Exp1.testset,scaler)
+idx_X = np.linspace(1, len(X), len(X)).astype(np.int)
 data = np.c_[idx_Xt, Xt, Yt]
 np.savetxt('../../generated_data/temporal_data.csv', data, fmt='%s', delimiter=',')
 # part 2
-[X,Y] = extract_features(Exp2,MAPPING,Exp2.testset)
-idx_X = np.linspace(1, len(X), len(X)).astype(np.int);
-data = np.c_[idx_Xt, Xt, Yt]
-np.savetxt('../../generated_data/fourier_data.csv', data, fmt='%s', delimiter=',')
+##### [X,Y] = extract_features(Exp2,MAPPING,Exp2.testset)
+##### idx_X = np.linspace(1, len(X), len(X)).astype(np.int);
+##### data = np.c_[idx_Xt, Xt, Yt]
+##### np.savetxt('../../generated_data/fourier_data.csv', data, fmt='%s', delimiter=',')

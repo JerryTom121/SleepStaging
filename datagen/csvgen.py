@@ -57,10 +57,10 @@ else:
     # Save or load scaler
     if scaler_train==None:
         print "## Load scaler -- no training data...."
-        joblib.load('scaler_'+param1+'.pkl') 
+        scaler_train = joblib.load('datascale/scaler_'+param1+'.pkl') 
     else:
         print "## Save scaler -- learned from training data...."
-        joblib.dump(scaler_train, 'scaler_'+param1+'.pkl')
+        joblib.dump(scaler_train, 'datascale/scaler_'+param1+'.pkl')
     # Get validation data
     [Xv,Yv,scaler_test]  = extract_features(Exp,MAPPING,Exp.testset,scaler_train)
     # Remove artefakts if requested by the experiment
