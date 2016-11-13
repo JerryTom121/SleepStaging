@@ -16,7 +16,7 @@ from preprocessing import RawDataNormalizer,FourierEnergyNormalizer
 
 
 
-def extract_features(Exp,mapping,file_sets,scaler=None):
+def extract_features(Exp,mapping,file_sets,scaler=None,get_labels=True):
     '''
     #Description: Extract features and corresponding labels from the given files.
     -----------------------------------------------------------------------------
@@ -58,7 +58,7 @@ def extract_features(Exp,mapping,file_sets,scaler=None):
         # For each file set
         [file_folder,file_id] = str.rsplit(file_set,'/',1)
         for f in os.listdir(data_folder+file_folder):
-            if '.edf' in f and file_id in f:                # For each valid .edf file             
+            if f.endswith('.edf') and file_id in f:                # For each valid .edf file             
                 # Debug output
                 print "File "+f+" is now being processed..."
                 # ------------------------------------------------
@@ -82,34 +82,23 @@ def extract_features(Exp,mapping,file_sets,scaler=None):
                 # Extract features from these signals
                 # -----------------------------------
                 file_features = feature_extractor(eeg1,eeg2,emg,samples_per_epoch,ds_factor) 
-                # --------------            
-                # Extract labels
-                # --------------
-                num_intervals = np.shape(file_features)[0]
-                raw_labels    = np.genfromtxt(data_folder+file_folder+'/'+str.rsplit(f,'.')[0]+'.STD', skip_header=0, dtype=str, comments="4s")    
-                # ----------------      
-                # Number of labels
-                # ----------------
-                nlabels = np.shape(raw_labels)[0]
-                print "Number of labels is: " + str(nlabels)
-                # --------------
-                # Extract labels
-                # --------------
-                file_labels   = raw_labels[:,1:].copy()
-                for i in range(nlabels):
-                        file_labels[i,0] = mapping[raw_labels[i,1]]
-                # ---------------------------------
-                # Print out the number of artifacts
-                # ---------------------------------
-                tmp = file_labels[:,0]
-                print "Number of artifacts is: " + str(np.count_nonzero(tmp[tmp=='-1']))
-                # --------------------------------
-                # Accumulating features and labels
-                # --------------------------------
+                # Accumulating features
                 features = np.vstack([features, file_features]) if np.shape(features)[0] else file_features
-                labels   = np.vstack([labels, file_labels])     if np.shape(labels)[0]   else file_labels
-                print "The shape of features is: " + str(np.shape(features))
-                print "The shape of labels is: " + str(np.shape(labels))
+		# ---------------------------
+		# Extract labels if requested
+		# ---------------------------
+		if get_labels:
+                	num_intervals = np.shape(file_features)[0]
+	                raw_labels    = np.genfromtxt(data_folder+file_folder+'/'+str.rsplit(f,'.')[0]+'.STD', skip_header=0, dtype=str, comments="4s")    
+	                nlabels = np.shape(raw_labels)[0]
+	                print "Number of labels is: " + str(nlabels)
+	                file_labels   = raw_labels[:,1:].copy()
+	                for i in range(nlabels):
+    	                    file_labels[i,0] = mapping[raw_labels[i,1]]
+	                tmp = file_labels[:,0]
+	                print "Number of artifacts is: " + str(np.count_nonzero(tmp[tmp=='-1']))
+	                # Accumulating labels
+	                labels   = np.vstack([labels, file_labels])     if np.shape(labels)[0]   else file_labels
                 # ------------
                 # Debug output
                 # ------------

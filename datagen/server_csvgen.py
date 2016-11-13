@@ -29,10 +29,10 @@ Exp2.testset.append(sys.argv[1])
 # --------------------------------------------------------------------------- #
 # part 1
 scaler   = joblib.load('datascale/temporal_scaler.pkl')
-[X,Y,s]  = extract_features(Exp1,MAPPING,Exp1.testset,scaler)
+[X,Y,s]  = extract_features(Exp1,MAPPING,Exp1.testset,scaler,get_labels=False)
 idx_X    = np.linspace(1, len(X), len(X)).astype(np.int)
-data     = np.c_[idx_X, X, Y]
-np.savetxt('../../generated_data/temporal_data.csv', data, fmt='%s', delimiter=',')
+data     = np.c_[idx_X, X]
+np.savetxt('/var/www/data/temporal_data.csv', data, fmt='%s', delimiter=',')
 # part 2
 ##### [X,Y] = extract_features(Exp2,MAPPING,Exp2.testset)
 ##### idx_X = np.linspace(1, len(X), len(X)).astype(np.int);
