@@ -84,10 +84,10 @@ def extract_features(Exp,mapping,file_sets,scaler=None,get_labels=True):
                 file_features = feature_extractor(eeg1,eeg2,emg,samples_per_epoch,ds_factor) 
                 # Accumulating features
                 features = np.vstack([features, file_features]) if np.shape(features)[0] else file_features
-		# ---------------------------
-		# Extract labels if requested
-		# ---------------------------
-		if get_labels:
+        		# ---------------------------
+        		# Extract labels if requested
+        		# ---------------------------
+                if get_labels:
                 	num_intervals = np.shape(file_features)[0]
 	                raw_labels    = np.genfromtxt(data_folder+file_folder+'/'+str.rsplit(f,'.')[0]+'.STD', skip_header=0, dtype=str, comments="4s")    
 	                nlabels = np.shape(raw_labels)[0]
@@ -147,22 +147,13 @@ def temporal_raw_features(eeg1,eeg2,emg,samples_per_epoch,ds_factor):
     eeg2 = signal.decimate(eeg2,ds_factor)
     emg  = signal.decimate(emg,ds_factor)
     samples_per_epoch = samples_per_epoch/ds_factor
-    # -------------------------
-    # Initialize feature matrix
-    # -------------------------
-    X = []
     # ------------------------
     # Construct feature matrix
     # ------------------------
-    for i in range(int(epochs)):
-        # get the signals of current epoch
-        eeg1_epoch = eeg1[int(samples_per_epoch) * i: int(samples_per_epoch) * (i + 1)]
-        eeg2_epoch = eeg2[int(samples_per_epoch) * i: int(samples_per_epoch) * (i + 1)]
-        emg_epoch  = emg[int(samples_per_epoch)  * i: int(samples_per_epoch) * (i + 1)]
-        # stack the signals into a feature vector
-        features = np.stack( (eeg1_epoch,eeg2_epoch,emg_epoch), 0).flatten();
-        # place feature vector into the feature matrix
-        X = np.vstack([X, features]) if np.shape(X)[0] else features
+    eeg1 = np.reshape(eeg1,(epochs,samples_per_epoch))
+    eeg2 = np.reshape(eeg2,(epochs,samples_per_epoch))
+    emg  = np.reshape(emg,(epochs,samples_per_epoch))
+    X = np.hstack( (eeg1,eeg2,emg))
     # return
     return X
 
