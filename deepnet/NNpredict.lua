@@ -4,10 +4,16 @@
 require 'cunn'
 require 'paths'
 require 'csvigo'
-require 'thcsv'
 local inout = require 'lib.inout'
 local debug = require 'lib.debug'
 local eval  = require 'lib.eval'
+
+--------------------
+-- System parameters
+--------------------
+model_path  = 'models/temporal_convolution'
+data_path   = '/home/sleep/data/temporal_data.csv'
+output_path = '/home/sleep/data/results/artifacts.txt'
 
 
 
@@ -23,28 +29,24 @@ function toCSV (tt)
   local s = ""
 -- ChM 23.02.2014: changed pairs to ipairs 
 -- assumption is that fromCSV and toCSV maintain data as ordered array
-   for _,p in ipairs(tt) do  
+   for _,p in ipairs(tt) do
        s = s .. "," .. escapeCSV(p)
    end
    return string.sub(s, 2)      -- remove first comma
 end
 
-----------------------
--- Chose trained model
-----------------------
-network = torch.load('models/temporal_convolution')
 
-----------------
--- Load CSV file
-----------------
-data = inout.load_dataset('../../CSV/temporal_data.csv',3,0)
 
------------------------
--- Generate predictions
------------------------
+
+-- load trained model
+print("## Load trained model")
+network = torch.load(model_path)
+-- load data set
+print("## Load data set")
+data = inout.load_dataset(data_path,3,0)
+-- predict
+print("## Generate predictions")
 predictions = eval.predict(data,network)
-
--------------------
--- Save predictions
--------------------
-torch.save('../../CSV/results.txt',toCSV(predictions),'ascii')
+-- save predictions
+print("## Write predictions into a file")
+torch.save(output_path,toCSV(predictions),'ascii')

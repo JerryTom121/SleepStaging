@@ -1,2 +1,2 @@
-rm -f /local/home/djordjem/code/CSV/results.txt
-CUDA_VISIBLE_DEVICES=$1 th /local/home/djordjem/code/sleepstaging/deepnet/NNpredict.lua
+rm -f /home/sleep/data/results/artifacts.txt
+CUDA_VISIBLE_DEVICES=0 th NNpredict.lua
