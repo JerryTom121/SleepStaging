@@ -3,6 +3,36 @@
 -------------
 local M = {};
 
+require 'math'
+
+--------------------------------------------------
+-- Predict artifacts on a given data set
+-- @param dataset testing data set
+--------------------------------------------------
+function M.predict(dataset,network)
+
+    -- make sure the network is in evaluation mode
+    network:evaluate()
+
+    -- predictions array
+    local predictions = {}
+
+    for i=1,dataset:size() do
+	-- Construct input based on the network type
+	local input = dataset.data[i]
+	-- Get the true label and our prediction
+        local output = network:forward(input)
+	-- added for soft max version
+	if output[2]<output[1] then predictions[i]=-1 else predictions[i]=0 end
+
+    end
+
+    -- return
+    return predictions
+end
+
+
+
 
 --------------------------------------------------
 -- Evaluate the efficency in discovering artifacts
@@ -64,12 +94,12 @@ function M.test(dataset,network)
             -- Artifact successfully detected
             if pred==-1 then
                 hits = hits + 1
-		average_hit_confidence = average_hit_confidence + math.abs(prediction[2])
+		average_hit_confidence = average_hit_confidence + prediction[2]
 
             -- Artifact not detected
             else
                 fn = fn + 1
-		average_miss_confidence = average_miss_confidence + math.abs(prediction[2])
+		average_miss_confidence = average_miss_confidence + prediction[2]
 
 		-- Check the previous neighbour of the  missed artifact
 		if (dataset.label[i-1][1]==-1) then
@@ -144,12 +174,20 @@ function M.test(dataset,network)
     average_hit_confidence  = average_hit_confidence/hits
     average_miss_confidence = average_miss_confidence/fn
 
-    print('Number of guessed artefakts: '..hits)
-    print('Number of false positives:   '..fp)
-    print('Number of missed artefakts:  '..fn)
-    print('----------------------------------------')
-    print('The average confidence of guessed artifacts: '..average_hit_confidence)
-    print('The average confidence of missed artifacts:  '..average_miss_confidence)
+    prec = (hits/(hits+fp))
+    recl = (hits/(hits+fn))
+    print(' ____________________________')
+    print('| Precision: '..prec..'|')
+    print('| Recall:    '..recl..'|')
+    print('| Fscore:    '..2*prec*recl/(prec+recl)..'|')
+    print('| NormalPrec:'..(1-0.5*fn/(hits+fn)-0.5*fp/(dataset:size()-hits-fn))..'|')
+    print('|____________________________|')
+    print('| Number of guessed artefakts: '..hits)
+    print('| Number of false positives:   '..fp)
+    print('| Number of missed artefakts:  '..fn)
+    print('|____________________________________|')
+    print('The average confidence of guessed artifacts: '..math.exp(average_hit_confidence)..' '..average_hit_confidence)
+    print('The average confidence of missed artifacts:  '..math.exp(average_miss_confidence)..' '..average_miss_confidence)
     print('----------------------------------------')
     print('----- FALSE POSITIVES STATISTICS -------')
     print('----------------------------------------')
@@ -237,12 +275,12 @@ function M.test2(dataset,network1,dataset2,network2)
             -- Artifact successfully detected
             if pred==-1 then
                 hits = hits + 1
-		average_hit_confidence = average_hit_confidence + math.abs(prediction1[2]+prediction2[2])
+		average_hit_confidence = average_hit_confidence + (prediction1[2]+prediction2[2])/2
 
             -- Artifact not detected
             else
                 fn = fn + 1
-		average_miss_confidence = average_miss_confidence + math.abs(prediction1[2]+prediction2[2])
+		average_miss_confidence = average_miss_confidence + (prediction1[2]+prediction2[2])/2
 		-- Check the previous neighbour of the  missed artifact
 		if (dataset.label[i-1][1]==-1) then
 			fn_both_previous = fn_both_previous + 1
@@ -312,16 +350,23 @@ function M.test2(dataset,network1,dataset2,network2)
         end
     end
 
-
     average_hit_confidence  = average_hit_confidence/hits
     average_miss_confidence = average_miss_confidence/fn
 
-    print('Number of guessed artefakts: '..hits)
-    print('Number of false positives:   '..fp)
-    print('Number of missed artefakts:  '..fn)
-    print('----------------------------------------')
-    print('The average confidence of guessed artifacts: '..average_hit_confidence)
-    print('The average confidence of missed artifacts:  '..average_miss_confidence)
+    prec = (hits/(hits+fp))
+    recl = (hits/(hits+fn))
+    print(' ____________________________')
+    print('| Precision: '..prec..'|')
+    print('| Recall:    '..recl..'|')
+    print('| Fscore:    '..2*prec*recl/(prec+recl)..'|')
+    print('| NormalPrec:'..(1-0.5*fn/(hits+fn)-0.5*fp/(dataset:size()-hits-fn))..'|')
+    print('|____________________________|')
+    print('| Number of guessed artefakts: '..hits)
+    print('| Number of false positives:   '..fp)
+    print('| Number of missed artefakts:  '..fn)
+    print('|____________________________________|')
+    print('The average confidence of guessed artifacts: '..math.exp(average_hit_confidence))
+    print('The average confidence of missed artifacts:  '..math.exp(average_miss_confidence))
     print('----------------------------------------')
     print('----- FALSE POSITIVES STATISTICS -------')
     print('----------------------------------------')
@@ -349,8 +394,7 @@ function M.test2(dataset,network1,dataset2,network2)
     print('Subsequent neighbour was classified as an artifact by Christine: '..fn_c_subs)
     print('Subsequent neighbour was classified as an artifact by one of the raters: '..fn_a_subs+fn_c_subs-fn_both_subs)
     print('----------------------------------------')
-    print('According to both raters, artifact is in between two other artifacts '..fn_between)
-
+    print('According to both raters, artifact is in between two other artifacts '..fn_between)	
 end
 
 

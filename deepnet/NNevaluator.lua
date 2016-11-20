@@ -14,12 +14,18 @@ local eval  = require 'lib.eval'
 -- Parse command line argument
 ------------------------------
 local configFile = arg[1]
-assert(configFile=="spectral" or configFile=="temporal" or configFile=="hybrid","ERROR: No existing model is selected!")
+model, iter = configFile:match("([^_]+)_([^_]+)")
+if not model then
+	model = configFile
+	model_iter = configFile
+else
+	model_iter = model.."_"..iter
+end
 
 ------------------------------
 -- Fetch experiment parameters
 ------------------------------
-paths.dofile('configs/' .. configFile .. '.lua')
+paths.dofile('configs/' .. model .. '.lua')
 experiment   = getExperiment()
 network      = getModel()        -- just for the sake of debugging
 optimization = getOptimization() -- just for the sake of debugging 
@@ -28,7 +34,7 @@ optimization = getOptimization() -- just for the sake of debugging
 -- Load trained model
 ---------------------
 print('## Loading trained model..')
-network = torch.load('models/'..configFile)
+network = torch.load('models/'..model_iter)
 
 -----------------------
 -- Print the parameters
@@ -39,27 +45,22 @@ debug.outputParameters(network,optimization,experiment)
 -- Load validation data
 -----------------------
 print("## Load validation data...")
-if configFile=="hybrid" then
-	-- load
-	testSet = inout.load_dataset('../../CSV/test_exp'..experiment.number..'.csv',1,3)
-	-- split into temporal and fft matrix
-	CONV_test = torch.reshape(testSet.data[{{},{1,experiment.numChan*experiment.epochSize}}],
-				   testSet.data:size(1),experiment.numChan,experiment.epochSize):transpose(2,3)
-	FFT_test  = testSet.data[{{},{experiment.numChan*experiment.epochSize+1,experiment.numChan*experiment.epochSize+experiment.numFFTfeat}}]
-	-- print testing set dimensions 
-	print("Conv module input dimensions: "..CONV_test:size(1).." x "..CONV_test:size(2).." x "..CONV_test:size(3))
-	print("FFT module input dimensions:  "..FFT_test:size(1).." x "..FFT_test:size(2))
-	-- Move to CUDA
+if experiment.number == 0 then
+	testSet = {}
         testSet.data = {}
-        testSet.data.convData = CONV_test:cuda()
-        testSet.data.fftData  = FFT_test:cuda()
-        testSet.label         = testSet.label:cuda()
-        -- Enable access
+        temp = inout.load_dataset('../../CSV/test_exp12.csv',3,3)
+        fft  = inout.load_dataset('../../CSV/test_exp14.csv',1,3)
+        testSet.data.temp = temp.data:cuda()
+        testSet.data.fft  = fft.data:cuda()
+        testSet.label     = temp.label:cuda()
         setmetatable(testSet.data,
-        	     {__index = function(t, i)
-                		     return {t.fftData[i],t.convData[i]}
+                     {__index = function(t, i)
+                                     return {t.temp[i],t.fft[i]}
                                 end}
         );
+        function testSet:size()
+                return testSet.label:size(1)
+        end
 else
         testSet = inout.load_dataset('../../CSV/test_exp'..experiment.number..'.csv',experiment.numChan,3)
         print("## Input dimensions: "..testSet.data:size(1).." x "..testSet.data:size(2))

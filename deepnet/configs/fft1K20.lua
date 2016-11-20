@@ -14,53 +14,25 @@ NUM_CHAN   = 3
 -- Neural network architecture
 ------------------------------
 function getModel()
-	 
--- PARAMETERS
-	 CONV_L1_featureMaps = 30
-	 CONV_L1_kernel      = 39
+	 -- Layer 1 (temporal convolution) parameters
+	 CONV_L1_featureMaps = 15
+	 CONV_L1_kernel      = 20
 	 CONV_L1_stride      = 1
-	 --
-	 CONV_L2_featureMaps = 10
-         CONV_L2_kernel      = 6
-         CONV_L2_stride      = 2
-         --
-         denseNetwork       = 400
-         
-
-	 -- TEMPORAL CONVOLUTION
-	 -----------------------
+	 -- FC layers
+	 denseNetwork       = 90
+	 -- feature extractor
 	 convnet = nn.Sequential()
 	 signal = EPOCH_SIZE; print(signal)
 	 -- Add Layer 1:
-	 convnet:add(nn.TemporalConvolution(NUM_CHAN,CONV_L1_featureMaps,CONV_L1_kernel,CONV_L1_stride)):add(nn.ReLU())
+	 convnet:add(nn.TemporalConvolution(NUM_CHAN,CONV_L1_featureMaps,CONV_L1_kernel,CONV_L1_stride))
+	 convnet:add(nn.ReLU())
 	 signal  = (signal-CONV_L1_kernel)/CONV_L1_stride + 1; print(signal)
-	 -- Add Layer 2:
-	 convnet:add(nn.TemporalConvolution(CONV_L1_featureMaps,CONV_L2_featureMaps,CONV_L2_kernel,CONV_L2_stride)):add(nn.ReLU())
-         signal  = (signal-CONV_L2_kernel)/CONV_L2_stride + 1; print(signal)
-	 -- normalize viev
+	 -- normalize view
 	 convnet:add(nn.View(-1))
-	 -- add linear layer
-	 convnet:add(nn.Linear(CONV_L2_featureMaps*signal,denseNetwork)):add(nn.ReLU()):add(nn.Dropout(0.5))
-
-	 -- FOURIER ENERGY
-	 ----------------------
-	 energynet = nn.Sequential()
-	 signal = EPOCH_SIZE; print(signal)
-	 -- add linear layer
-	 energynet:add(nn.Linear(13,denseNetwork)):add(nn.ReLU()):add(nn.Dropout(0.5))
- 
- 	 -- MIXTURE NETWORK
-	 ------------------
-	 mix = nn.ParallelTable()
-        	 :add(convnet)
-        	 :add(energynet)
-
-	 -- FULL NETWORK
-	 ---------------
+	 -- full network architecture
 	 net = nn.Sequential()
-	         :add(mix)
-		 :add(nn.JoinTable(1))
-	         :add(nn.Linear(2*denseNetwork,denseNetwork))
+	         :add(convnet)
+	         :add(nn.Linear(CONV_L1_featureMaps*signal,denseNetwork))
 	         :add(nn.ReLU())                                 -- :add(nn.Threshold(0, 1e-6)) instead of RELU?????
 		 :add(nn.Dropout(0.5))
 		 :add(nn.Linear(denseNetwork,denseNetwork))
@@ -79,10 +51,10 @@ end
 function getOptimization()
 	-- change parameters here
 	local optimization = {}
-	optimization.pretrained        = true
-	optimization.learningRate      = 0.00008 --0.0001
+	optimization.pretrained        = false
+	optimization.learningRate      = 0.0001
 	optimization.learningRateDecay = 0.01
-	optimization.momentum	       = 0.5
+	optimization.momentum	       = 0.9
 	optimization.batchSize         = 1
 	optimization.iterations        = 20
 	optimization.weightDecay       = 0.0005
@@ -97,10 +69,10 @@ end
 function getExperiment()
 	-- change parameters here
 	local experiment = {}
-	experiment.number    = 0
+	experiment.number    = 13
 	experiment.numChan   = NUM_CHAN
-	experiment.augType   = ''
-	experiment.name      = 'hybrid'
+	experiment.augType   = '_aug'
+	experiment.name      = 'fourier_convolution'
 	experiment.normalize = false
 	
 	return experiment

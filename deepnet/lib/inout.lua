@@ -20,7 +20,9 @@ function M.load_dataset(filepath,nchannels,nlabels)
 
 	-- Create data sets by discarding first column and using the last one as labels
 	dataset.data   =  datasetCSV[{{},{2,datasetCSV:size(2)-nlabels}}]
-	dataset.label  =  datasetCSV[{{},{datasetCSV:size(2)-nlabels+1,datasetCSV:size(2)}}]
+	if nlabels>0 then
+		dataset.label  =  datasetCSV[{{},{datasetCSV:size(2)-nlabels+1,datasetCSV:size(2)}}]
+	end
 
 	-- Reshape data sets to fit the convolutional  network architecture if specified
 	if (nchannels>1) then
@@ -30,18 +32,28 @@ function M.load_dataset(filepath,nchannels,nlabels)
 	
 	-- Some other preparation for training of our convolutional neural network
 	dataset.data = dataset.data:double() -- convert the data from a ByteTensor to a DoubleTensor.
-	setmetatable(dataset,
-	    {__index = function(t, i)
-	                    return {t.data[i], t.label[i]}
-	                end}
-	);
+	if nlabels>0 then
+		setmetatable(dataset,
+		    {__index = function(t, i)
+		                    return {t.data[i], t.label[i]}
+		                end}
+		);
+	else
+		setmetatable(dataset,
+                    {__index = function(t, i)
+                                    return {t.data[i]}
+                                end}
+                );
+	end
 	function dataset:size()
-	    return self.label:size(1)
+	    return self.data:size(1)
 	end
 	
 	-- move to CUDA
 	dataset.data  = dataset.data:cuda()
-	dataset.label = dataset.label:cuda()
+	if nlabels>0 then
+		dataset.label = dataset.label:cuda()
+	end
 
 	return dataset
 end

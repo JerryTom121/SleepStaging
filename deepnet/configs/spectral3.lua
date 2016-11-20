@@ -12,19 +12,20 @@ NUM_FFT_FEATURES = 13
 ------------------------------
 function getModel()
 	-- change parameters here
-	local denseLayer = 500
+	local layer1 = 200
+	local layer2 = 500
 	-- feature extractor
 	ftextractor = nn.Sequential()
-		      	:add(nn.Linear(NUM_FFT_FEATURES,denseLayer))
+		      	:add(nn.Linear(NUM_FFT_FEATURES,layer1))
 			:add(nn.ReLU())
 			:add(nn.Dropout(0.5))
-			:add(nn.Linear(denseLayer,denseLayer))
+			:add(nn.Linear(layer1,layer2))
 			:add(nn.ReLU())
-			:add(nn.Dropout(0.5))
 			:add(nn.View(-1))
 	-- full network
 	net = nn.Sequential()
 		:add(ftextractor)
+		:add(nn.Dropout(0.5))
 		:add(nn.Linear(layer2,2))
 		:add(nn.LogSoftMax())
 
@@ -37,11 +38,11 @@ end
 function getOptimization()
 	-- change parameters here
 	local optimization = {}
-	optimization.pretrained        = false
-	optimization.learningRate      = 0.0001
+	optimization.pretrained        = true
+	optimization.learningRate      = 0.01
 	optimization.learningRateDecay = 0.01
-	optimization.batchSize         = 1
-	optimization.iterations        = 10
+	optimization.batchSize         = 50
+	optimization.iterations        = 5
 
 	return optimization
 end
@@ -56,7 +57,7 @@ function getExperiment()
 	experiment.numChan  = 1
 	experiment.augType = '_aug'
 	experiment.name    = 'spectral'
-	experiment.normalize = false
+	experiment.normalize = true
 	
 	return experiment
 end

@@ -25,7 +25,7 @@ function getModel()
 	-- full network
 	net = nn.Sequential()
 		:add(ftextractor)
-		:add(nn.Linear(layer2,2))
+		:add(nn.Linear(denseLayer,2))
 		:add(nn.LogSoftMax())
 
 	return net
@@ -52,7 +52,7 @@ end
 function getExperiment()
 	-- change parameters here
 	local experiment = {}
-	experiment.number   = 5
+	experiment.number   = 14
 	experiment.numChan  = 1
 	experiment.augType = '_aug'
 	experiment.name    = 'spectral'

@@ -8,7 +8,7 @@
 require 'nn'
 require 'cunn'
 require 'paths'
-require 'lib.MBGD'
+require 'lib.optimization'
 local inout = require 'lib.inout'
 local debug = require 'lib.debug'
 
@@ -16,7 +16,6 @@ local debug = require 'lib.debug'
 -- Parse command line argument
 ------------------------------
 local configFile = arg[1]
-assert(configFile=="spectral" or configFile=="temporal" or configFile=="hybrid","ERROR: No existing model is selected!")
 
 ----------------------------
 -- Fetch training parameters
@@ -35,29 +34,25 @@ debug.outputParameters(network,optimization,experiment)
 -- Load training data
 ---------------------
 print("## Load training data...")
-if configFile=="hybrid" then
-	trainSet = inout.load_dataset('../../CSV/train_exp'..experiment.number..experiment.augType..'.csv',1,1)
-	-- split into temporal and fft matrix
-	CONV_train = torch.reshape(trainSet.data[{{},{1,experiment.numChan*experiment.epochSize}}],
-				   trainSet.data:size(1),experiment.numChan,experiment.epochSize):transpose(2,3)
-	FFT_train  = trainSet.data[{{},{experiment.numChan*experiment.epochSize+1,experiment.numChan*experiment.epochSize+experiment.numFFTfeat}}]
-	-- print training set dimensions 
-	print("Conv module input dimensions: "..CONV_train:size(1).." x "..CONV_train:size(2).." x "..CONV_train:size(3))
-	print("FFT module input dimensions:  "..FFT_train:size(1).." x "..FFT_train:size(2))
-	-- Move to CUDA
-        trainSet.data = {}
-        trainSet.data.convData = CONV_train:cuda()
-        trainSet.data.fftData  = FFT_train:cuda()
-        trainSet.label         = trainSet.label:cuda()
-        -- Enable access
-        setmetatable(trainSet.data,
-        	     {__index = function(t, i)
-                		     return {t.fftData[i],t.convData[i]}
+if experiment.number==0 then
+	trainSet = {}
+	trainSet.data = {}
+	temp = inout.load_dataset('../../CSV/train_exp12_rot.csv',3,1)
+	fft  = inout.load_dataset('../../CSV/train_exp14_aug.csv',1,1)
+	trainSet.data.temp = temp.data:cuda()
+	trainSet.data.fft  = fft.data:cuda()
+	trainSet.label     = temp.label:cuda()
+	setmetatable(trainSet.data,
+                     {__index = function(t, i)
+                                     return {t.temp[i],t.fft[i]}
                                 end}
         );
+	function trainSet:size()
+		return trainSet.label:size(1)
+	end
 else
         trainSet = inout.load_dataset('../../CSV/train_exp'..experiment.number..experiment.augType..'.csv',experiment.numChan,1)
-        print("## Input dimensions: "..trainSet.data:size(1).." x "..trainSet.data:size(2))
+        print("## Input dimensions: ");print(trainSet.data:size())
 end
 
 -------------------------------------
@@ -73,7 +68,7 @@ end
 ---------------------------------
 print('## Training of the neural network begins...')
 local timer = torch.Timer()
-trainer = nn.MBGD(network,nn.ClassNLLCriterion(),optimization)
+trainer = nn.MBGD(network,nn.ClassNLLCriterion(),optimization,configFile)
 trainer:train(trainSet)
 print('## Time elapsed for training neural net: ' .. timer:time().real .. ' seconds\n')
 

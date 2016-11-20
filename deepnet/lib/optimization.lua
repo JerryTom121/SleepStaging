@@ -6,15 +6,16 @@ local MBGD = torch.class('nn.MBGD')
 
 
 
-function MBGD:__init(module, criterion, optimization)
+function MBGD:__init(module, criterion, optimization, name)
    self.learningRate 	  = optimization.learningRate
    self.learningRateDecay = optimization.learningRateDecay
    self.maxIteration 	  = optimization.iterations
    self.batchSize 	  = optimization.batchSize
    self.module 		  = module
    self.criterion 	  = criterion
-   self.weightDecay 	  = 0
+   self.weightDecay 	  = optimization.weightDecay or 0
    self.momentum 	  = 0
+   self.name		  = name
 end
 
 
@@ -115,8 +116,9 @@ function MBGD:train(trainSet)
 	   		 end
 		
        -- do the optimization for the current mini-batch			
-       --optim.sgd(feval, parameters, optimState) -- with momentum
-       optim.adagrad(feval, parameters, optimState)
+       --optim.adagrad(feval, parameters, optimState)
+       optim.sgd(feval, parameters, optimState) -- with momentum
+       --optim.adam(feval, parameters, optimState) -- with momentum
        
       end -- end of "for each batch" loop
 
@@ -130,17 +132,17 @@ function MBGD:train(trainSet)
       print(confusion)
       confusion:zero()
 
+      -- save/log current net
+      local filename = 'models/'..self.name..'_iter='..iteration
+      os.execute('mkdir -p ' .. sys.dirname(filename))
+      print('==> saving model to '..filename)
+      torch.save(filename, model)
+	
       -- increase the iiteration number
       iteration = iteration + 1
 
       -- decay learning rate (pay attention: we use self.learningRateDecay)
       optimState.learningRate = optimState.learningRate/(1+iteration*self.learningRateDecay)
-
-      -- save/log current net
-      local filename = '../models/model.net'
-      os.execute('mkdir -p ' .. sys.dirname(filename))
-      print('==> saving model to '..filename)
-      torch.save(filename, model)
 
       -- check if max iteration has been reached
       if self.maxIteration > 0 and iteration > self.maxIteration then

@@ -13,21 +13,21 @@ NUM_CHAN   = 3
 ------------------------------
 function getModel()
 	 -- Layer 1 (temporal convolution) parameters
-	 CONV_L1_featureMaps = 15
+	 CONV_L1_featureMaps = 10
 	 CONV_L1_kernel      = 9
 	 CONV_L1_stride      = 1
 	 -- MaxPool 1
 	 MP_L1_region        = 2
 	 MP_L1_stride        = 2
 	 -- Layer 2 (temporal convolution) parameters
-	 CONV_L2_featureMaps = 15
+	 CONV_L2_featureMaps = 10
 	 CONV_L2_kernel      = 9
 	 CONV_L2_stride      = 1
 	 -- MaxPool 2
 	 MP_L2_region        = 2
 	 MP_L2_stride        = 2
 	 -- Layer 3 (temporal convolution) parameters
-	 CONV_L3_featureMaps = 15
+	 CONV_L3_featureMaps = 10
 	 CONV_L3_kernel      = 9
 	 CONV_L3_stride      = 1
 	 -- FC layer

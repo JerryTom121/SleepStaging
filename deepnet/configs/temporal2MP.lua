@@ -13,23 +13,26 @@ NUM_CHAN   = 3
 ------------------------------
 function getModel()
 	 -- Layer 1 (temporal convolution) parameters
-	 CONV_L1_featureMaps = 15
+	 CONV_L1_featureMaps = 10
 	 CONV_L1_kernel      = 9
 	 CONV_L1_stride      = 1
 	 -- MaxPool 1
 	 MP_L1_region        = 2
 	 MP_L1_stride        = 2
 	 -- Layer 2 (temporal convolution) parameters
-	 CONV_L2_featureMaps = 15
+	 CONV_L2_featureMaps = 10
 	 CONV_L2_kernel      = 9
 	 CONV_L2_stride      = 1
 	 -- MaxPool 2
 	 MP_L2_region        = 2
 	 MP_L2_stride        = 2
 	 -- Layer 3 (temporal convolution) parameters
-	 CONV_L3_featureMaps = 15
+	 CONV_L3_featureMaps = 10
 	 CONV_L3_kernel      = 9
 	 CONV_L3_stride      = 1
+	 -- MaxPool 2
+	 MP_L3_region        = 2
+	 MP_L3_stride        = 2
 	 -- FC layer
 	 denseNetwork       = 500
 	 -- feature extractor
@@ -41,23 +44,27 @@ function getModel()
 	 convnet:add(nn.ReLU())
 	 signal  = (signal-CONV_L1_kernel)/CONV_L1_stride + 1; print(signal)
 	 -- Add Max pooling layer
-	 -------convnet:add(nn.TemporalMaxPooling(MP_L1_region,MP_L1_stride))
-	 -------signal =  (signal-MP_L1_region)/MP_L1_stride+1
-	 -------print(signal)
+	 convnet:add(nn.TemporalMaxPooling(MP_L1_region,MP_L1_stride))
+	 signal =  (signal-MP_L1_region)/MP_L1_stride+1
+	 print(signal)
 	 -- Add Layer 2
 	 convnet:add(nn.Dropout(0.5))
 	 convnet:add(nn.TemporalConvolution(CONV_L1_featureMaps,CONV_L2_featureMaps,CONV_L2_kernel,CONV_L2_stride))
 	 convnet:add(nn.ReLU())
 	 signal  = (signal-CONV_L2_kernel)/CONV_L2_stride + 1; print(signal)
 	 -- Add Max pooling layer:
-	 ------convnet:add(nn.TemporalMaxPooling(MP_L2_region,MP_L2_stride))
-	 ------signal =  (signal-MP_L2_region)/MP_L2_stride+1
-	 ------print(signal)
+	 convnet:add(nn.TemporalMaxPooling(MP_L2_region,MP_L2_stride))
+	 signal =  (signal-MP_L2_region)/MP_L2_stride+1
+	 print(signal)
 	 -- add Layer 3:
 	 convnet:add(nn.Dropout(0.5))
 	 convnet:add(nn.TemporalConvolution(CONV_L2_featureMaps,CONV_L3_featureMaps,CONV_L3_kernel,CONV_L3_stride))
          convnet:add(nn.ReLU())
          signal  = (signal-CONV_L3_kernel)/CONV_L3_stride + 1; print(signal)
+	 -- add max pooling
+	 convnet:add(nn.TemporalMaxPooling(MP_L3_region,MP_L3_stride))
+	 signal =  (signal-MP_L3_region)/MP_L3_stride+1
+	 print(signal)
 	 -- normalize view
 	 convnet:add(nn.View(CONV_L3_featureMaps*signal))
 	

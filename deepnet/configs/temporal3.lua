@@ -4,9 +4,11 @@
 -- channels 2 EEG and 1 EMG
 -----------------------------------------------------
 
+
 -- CONSTANTS
 EPOCH_SIZE = 128
 NUM_CHAN   = 3
+
 
 ------------------------------
 -- Neural network architecture
@@ -73,6 +75,7 @@ function getModel()
 	return net
 end
 
+
 ------------------------------------
 -- Optimization procedure parameters
 ------------------------------------
@@ -80,13 +83,14 @@ function getOptimization()
 	-- change parameters here
 	local optimization = {}
 	optimization.pretrained        = false
-	optimization.learningRate      = 0.01
-	optimization.learningRateDecay = 0.01
-	optimization.batchSize         = 50
+	optimization.learningRate      = 0.001
+	optimization.learningRateDecay = 0
+	optimization.batchSize         = 100
 	optimization.iterations        = 10
 
 	return optimization
 end
+
 
 ------------------------------------------
 -- Experiment parameters (define data set)
