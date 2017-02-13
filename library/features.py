@@ -70,6 +70,7 @@ def extract_features(Exp,mapping,file_sets,scaler=None,get_labels=True):
                 eeg1 = data.X[data.chan_lab.index('EEG1')]
                 eeg2 = data.X[data.chan_lab.index('EEG2')]
                 emg  = data.X[data.chan_lab.index('EMG')]
+                print np.shape(eeg1)
                 # -----------------------------------------
                 # Perform the exchange of eeg if neccessary
                 # -----------------------------------------

@@ -57,7 +57,7 @@ else:
     # Save or load scaler
     if scaler_train==None:
         print "## Load scaler -- no training data...."
-        scaler_train = joblib.load('datascale/scaler_'+param1+'.pkl') 
+        scaler_train = joblib.load('datascale/scaler.pkl') 
     else:
         print "## Save scaler -- learned from training data...."
         joblib.dump(scaler_train, 'datascale/scaler_'+param1+'.pkl')

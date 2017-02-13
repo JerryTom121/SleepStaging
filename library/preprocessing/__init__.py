@@ -1,3 +1,6 @@
 from normalization import Normalizer
 from normalization import RawDataNormalizer
 from normalization import FourierEnergyNormalizer
+from parsing import SleepScoringParserUZH
+from parsing import SleepScoringParserUSZ
+from parsing import SleepScoringParserAUT
