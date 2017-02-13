@@ -75,11 +75,9 @@ def output_predeval(truth_filepath, truth_parser, preds_filepath,\
     format(metrics.accuracy_score(ssa_truth.get_binary_label()[0:length], \
                                ssa_preds.get_binary_label()[0:length]), '.2f')
     print "| Recall: " + \
-    format(metrics.recall_score(ssa_truth.get_binary_label()[0:length], \
-                             ssa_preds.get_binary_label()[0:length]), '.2f')
+    format(cmat_artdet[0, 0]*1.0/(cmat_artdet[0, 0]+cmat_artdet[0, 1]), '.2f')
     print "| Precision: "+\
-    format(metrics.precision_score(ssa_truth.get_binary_label()[0:length], \
-                                ssa_preds.get_binary_label()[0:length]), '.2f')
+    format(cmat_artdet[0, 0]*1.0/(cmat_artdet[0, 0]+cmat_artdet[1, 0]), '.2f')
     print "----------------------------------------"
     print "| EVAL: No artifact sleep scoring accuracy:"
     print "| "+format((cmat_ss[0, 0]+cmat_ss[1, 1]+cmat_ss[2, 2])*1.0/ \
@@ -110,22 +108,22 @@ output_predeval(cfg.EEG_FOLDER+"EEGDataPool/CM/GABRA/WT/GAB2R22B.STD", "UZH", \
 
 # Test artifact double scored data from UZH - wild types
 output_predeval(cfg.EEG_FOLDER+\
-				"DoubleScored/WildTypes/Intersection/Test/AS76E.STD", "UZH", \
+				"DoubleScored/WildTypes/IntersectedScoring/AS76E.STD", "UZH", \
 	            cfg.PREDS_FOLDER+"AS76E.csv", "AUT", \
 	            "Testing DS WT AS76E from UZH")
 
 output_predeval(cfg.EEG_FOLDER+\
-	            "DoubleScored/WildTypes/Intersection/Test/AS87H.STD", "UZH", \
+	            "DoubleScored/WildTypes/IntersectedScoring/AS87H.STD", "UZH", \
 	            cfg.PREDS_FOLDER+"AS87H.csv", "AUT", \
 	            "Testing DS WT AS87H from UZH")
 
 # Test artifact double scored data from UZH - mutants
 output_predeval(cfg.EEG_FOLDER+\
-                "DoubleScored/Mutants/Intersection/Test/AS73E.STD", "UZH", \
+                "DoubleScored/Mutants/IntersectedScoring/AS73E.STD", "UZH", \
                 cfg.PREDS_FOLDER+"AS73E.csv", "AUT", \
-                "Testing DS WT AS73E from UZH")
+                "Testing DS MT AS73E from UZH")
 
 output_predeval(cfg.EEG_FOLDER+\
-                "DoubleScored/Mutants/Intersection/Test/AS75D.STD", "UZH", \
+                "DoubleScored/Mutants/IntersectedScoring/AS75D.STD", "UZH", \
                 cfg.PREDS_FOLDER+"AS75D.csv", "AUT", \
-                "Testing DS WT AS75D from UZH")
+                "Testing DS MT AS75D from UZH")
