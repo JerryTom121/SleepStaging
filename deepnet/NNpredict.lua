@@ -13,6 +13,11 @@ local eval  = require 'lib.eval'
 --------------------
 model_path  = 'models/temporal_convolution'
 data_path   = '/home/sleep/data/temporal_data.csv'
+-- BG
+-- this depends on the name of the input file
+--output_path = '/home/sleep/data/results/artifacts' .. arg[1] .. '.txt'
+--print("Output path\n")
+--print(output_path)
 output_path = '/home/sleep/data/results/artifacts.txt'
 
 
@@ -50,3 +55,6 @@ predictions = eval.predict(data,network)
 -- save predictions
 print("## Write predictions into a file")
 torch.save(output_path,toCSV(predictions),'ascii')
+--fd = io.open(output_path, 'w')
+--fd:write(toCSV(predictions))
+--fd:close()
