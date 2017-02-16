@@ -4,8 +4,7 @@
 # License:
 
 # Set the Training flag
-RETRAIN_MODEL = False
-EVALUATE_PREDICTIONS = False
+RETRAIN_MODEL = True
 
 import config as cfg
 import os
@@ -14,12 +13,14 @@ import sslib.preprocessing as prep
 import sslib.parsing as pars
 
 
-# ---------------------------------------------------------------------------- #
-# --------------- Retrain the model if specified ----------------------------- #
-# ---------------------------------------------------------------------------- #
-if RETRAIN_MODEL:
+def train_model():
+    """Preform retraining using data given in /data folder.
 
-    print "# Debug: model retraining specified: "
+    Returns
+    -------
+       scaler: a parameter for feature scaling
+       model: trained neural network
+    """
 
     # Fetch and normalize features
     scaler = prep.NormalizerTemporal()
@@ -39,43 +40,72 @@ if RETRAIN_MODEL:
     # trainer = Trainer(cfg.OPT_PARS,features,labels)
     # model = trainer.train()
 
-    # Save paramaters
+    return scaler
+
+def save_model(scaler, nnmodel):
+    """Save parameters, usually done after training is preformed.
+
+    Parameters
+    ----------
+        scaler: feature scaling set of parameters
+        nnmodel: neural network model
+    """
+
+    # Save scaler
     joblib.dump(scaler, 'models/scaler.pkl')
+
     # save(model)
-else:
 
-    print "# Debug: loading existing model: "
+def load_model():
+    """Load existing model.
 
-    # Load previously trained feature normalizer
-    scaler = joblib.load('models/scaler.pkl')
+    Returns
+    -------
+        [scaler,nnmodel]: a tuple consisted of a scaler and a trained n. network
+    """
 
-    # bla bla bla
-    # NYI: model = load()
+    return joblib.load('models/scaler.pkl')
 
-# ---------------------------------------------------------------------------- #
-# ------ Make and evaluate predictions on test recordings -------------------- #
-# ---------------------------------------------------------------------------- #
-for recording in os.listdir(cfg.PATH_TO_TEST_RECORDINGS):
+def make_predictions(recording, scaler, nnmodel):
+    """Make predictions on a given recording
 
-    print "# Debug: processing recording " + recording
+    Parameters
+    ----------
+        recording: EEG/EMG recording on which we evaluate our model
+
+    Returns
+    -------
+        Numpy array of predictions
+
+    """
+
     features = prep.FeatureExtractorUZH(cfg.PATH_TO_TEST_RECORDINGS+recording)\
-                                 .get_temporal_features()
+                   .get_temporal_features()
     features = scaler.transform(features)
 
-    print "# Debug: Making predictions..."
+    # do something with nnmodel
 
-    # NYI: predictions = predict(model,features)
+    return None
 
-    if EVALUATE_PREDICTIONS:
+def evaluate_and_save_predictions(recording, predictions):
+    """Evaluate predictions on ground truth.
+    NYI
+    """
+    pass
 
-        print "# Debug: Evaluating predictions:"
 
-        # NYI: filename =
-        # scorings = parsing.ScoringExtractorUZH\
-        #           (PATH_TO_TEST_SCORINGS+filename).get_binary_scorings()
-        # NYI: evaluate(predictions,scorings)
-    else:
+# ---------------------------------------------------------------------------- #
+# --------------- Main part of the script ------------------------------------ #
+# ---------------------------------------------------------------------------- #
+if RETRAIN_MODEL:
+    print "# Debug: preform training "
+    scaler = train_model()
+    save_model(scaler, None)
+else:
+    print "# Debug: loading existing model "
+    scaler = load_model()
 
-        print "# Debug: Saving predictions into " + cfg.PATH_TO_PREDICTIONS
-
-        # NYI: save(predictions,cfg.PATH_TO_PREDICTIONS)
+# for each test file make predictions and evaluate the quality
+for recording in os.listdir(cfg.PATH_TO_TEST_RECORDINGS):
+    predictions = make_predictions(recording, scaler, None)
+    evaluate_and_save_predictions(recording, predictions)
