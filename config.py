@@ -31,9 +31,14 @@ PATH_TO_TEST_RECORDINGS = "./data/recordings/test/"
 # Scorings
 PATH_TO_TRAIN_SCORINGS = "./data/scorings/train/"
 PATH_TO_TEST_SCORINGS = "./data/scorings/test/"
-# Predictions
-PATH_TO_PREDICTIONS = "./data/predictions.csv"
-
+# CSV folder
+PATH_TO_CSV = "./data/CSV/"
+PATH_TO_TRAIN_FEATURES = PATH_TO_CSV + "train_features.csv"
+PATH_TO_TRAIN_LABELS = PATH_TO_CSV + "train_labels.csv"
+# Trained models
+PATH_TO_MODELS = "./models/"
+PATH_TO_SCALER = PATH_TO_MODELS + "scaler.pkl"
+PATH_TO_NNMODEL = PATH_TO_MODELS + "model.net"
 # ---------------------------------------------------------------------------- #
 # ------------------ Deep learning configuration ----------------------------- #
 # ---------------------------------------------------------------------------- #

@@ -4,69 +4,53 @@
 # License:
 
 # Set the Training flag
-RETRAIN_MODEL = True
+RETRAIN_MODEL = False
 
 import config as cfg
 import os
+import numpy as np
 from sklearn.externals import joblib
 import sslib.preprocessing as prep
 import sslib.parsing as pars
 
 
 def train_model():
-    """Preform retraining using data given in /data folder.
-
-    Returns
-    -------
-       scaler: a parameter for feature scaling
-       model: trained neural network
+    """Preform retraining using data given in /data folder. The model
+    parameters will be saved in the corresponding folder.
     """
 
-    # Fetch and normalize features
+    print "# Debug: model is being retrained... "
+
+    # Parse, normalize and save features
     scaler = prep.NormalizerTemporal()
     recordings = []
     for recording in os.listdir(cfg.PATH_TO_TRAIN_RECORDINGS):
         recordings.append(cfg.PATH_TO_TRAIN_RECORDINGS+recording)
     features = prep.FeatureExtractorUZH(recordings).get_temporal_features()
     features = scaler.fit_transform(features)
+    print "# Debug feature matrix for training: " + str(np.shape(features))
+    np.savetxt(cfg.PATH_TO_TRAIN_FEATURES, features, delimiter=",")
 
-    # Fetch labels
+    # Parse and save labels
     scorings = []
     for scoring in os.listdir(cfg.PATH_TO_TRAIN_SCORINGS):
         scorings.append(cfg.PATH_TO_TRAIN_SCORINGS+scoring)
     labels = pars.ScoringParserUZH(scorings).get_binary_scorings()
+    print "# Debug label array for training: " + str(np.shape(labels))
+    np.savetxt(cfg.PATH_TO_TRAIN_LABELS, labels, delimiter=",")
 
-    # Preform training
-    # trainer = Trainer(cfg.OPT_PARS,features,labels)
-    # model = trainer.train()
-
-    return scaler
-
-def save_model(scaler, nnmodel):
-    """Save parameters, usually done after training is preformed.
-
-    Parameters
-    ----------
-        scaler: feature scaling set of parameters
-        nnmodel: neural network model
-    """
+    # TODO:
+    # Call lua to train a model on above created files
+    # save the model in cfg.PATH_TO_NNMODEL
+    # ------------------------------------------------
 
     # Save scaler
-    joblib.dump(scaler, 'models/scaler.pkl')
+    joblib.dump(scaler, cfg.PATH_TO_SCALER)
 
-    # save(model)
 
-def load_model():
-    """Load existing model.
 
-    Returns
-    -------
-        [scaler,nnmodel]: a tuple consisted of a scaler and a trained n. network
-    """
 
-    return joblib.load('models/scaler.pkl')
-
-def make_predictions(recording, scaler, nnmodel):
+def predict(recording):
     """Make predictions on a given recording
 
     Parameters
@@ -79,11 +63,14 @@ def make_predictions(recording, scaler, nnmodel):
 
     """
 
+    # Fetch and transform features
+    scaler = joblib.load(cfg.PATH_TO_SCALER)
     features = prep.FeatureExtractorUZH(cfg.PATH_TO_TEST_RECORDINGS+recording)\
                    .get_temporal_features()
     features = scaler.transform(features)
+    np.savetxt(cfg.PATH_TO_CSV+recording+"_features"+".csv", features, delimiter=",")
 
-    # do something with nnmodel
+    # use lua to preform predictions on files which match "*_features.csv"
 
     return None
 
@@ -91,21 +78,27 @@ def evaluate_and_save_predictions(recording, predictions):
     """Evaluate predictions on ground truth.
     NYI
     """
-    pass
 
+import subprocess
+
+result = subprocess.check_output(['th', 'sslib/deepnet/predict.lua', cfg.PATH_TO_NNMODEL, cfg.PATH_TO_CSV])
+print result
+exit()
+# ---------------------------------------------------------------------------- #
+# --------------- Cleanup folder for .csv files ------------------------------ #
+# ---------------------------------------------------------------------------- #
+for file_ in os.listdir(cfg.PATH_TO_CSV):
+    os.remove(cfg.PATH_TO_CSV+file_)
 
 # ---------------------------------------------------------------------------- #
-# --------------- Main part of the script ------------------------------------ #
+# --------------- Train or load existing model ------------------------------- #
 # ---------------------------------------------------------------------------- #
 if RETRAIN_MODEL:
-    print "# Debug: preform training "
-    scaler = train_model()
-    save_model(scaler, None)
-else:
-    print "# Debug: loading existing model "
-    scaler = load_model()
+    train_model()
 
-# for each test file make predictions and evaluate the quality
+# ---------------------------------------------------------------------------- #
+# --------------- Evaluate accuracy on each file from test-data folder ------- #
+# ---------------------------------------------------------------------------- #
 for recording in os.listdir(cfg.PATH_TO_TEST_RECORDINGS):
-    predictions = make_predictions(recording, scaler, None)
+    predictions = predict(recording)
     evaluate_and_save_predictions(recording, predictions)
