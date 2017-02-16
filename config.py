@@ -1,20 +1,49 @@
+"""
+Global configuration parameters.
+
+ASSUMPTIONS:
+	(1) Recordings are named: 'EEG1','EEG2','EMG'
+	(2) Interval/epoch lasts 4 seconds - default argument of the parser
+	(3) EEG1 is frontal and EEG2 is parietal (or the opposite?)
+	(4) Files containing scorings are named the same as the ones containing raw
+	files
+
+TODO:
+	* Implement fourier and energy feature extractors in 
+	  preprocessing/feature_extraction.py
+	* Better normalization?
+	* Introduce filtering (e.g. low pass)?
+
+MAKE_SURE:
+	* That the labels correspond to features.
+
+"""
+# Author: Djordje Miladinovic
+# License:
+
 
 # ---------------------------------------------------------------------------- #
-# ------------------- Paths to folders and files ----------------------------- #
+# ------------------- File paths --------------------------------------------- #
 # ---------------------------------------------------------------------------- #
-# Home folder for EEG/EMG recordings
-EEG_FOLDER = "../data/EEGdata/"
-# Home folder for .csv data
-CSV_FOLDER = "../data/ProcessedData_CSV/"
-# Home folder for results obtained from server
-PREDS_FOLDER = "../data/Predictions_CSV/"
-# Training .csv file for artifact detection
-ARTDET_TRAIN_FILE = CSV_FOLDER + "training.csv"
-# Testing .csv file for artifact detection
-ARTDET_TEST_FILE = CSV_FOLDER + "testing.csv"
+# Raw data
+PATH_TO_TRAIN_RECORDINGS = "./data/recordings/train/"
+PATH_TO_TEST_RECORDINGS = "./data/recordings/test/"
+# Scorings
+PATH_TO_TRAIN_SCORINGS = "./data/scorings/train/"
+PATH_TO_TEST_SCORINGS = "./data/scorings/test/"
+# Predictions
+PATH_TO_PREDICTIONS = "./data/predictions.csv"
+
+# ---------------------------------------------------------------------------- #
+# ------------------ Deep learning configuration ----------------------------- #
+# ---------------------------------------------------------------------------- #
+
+
+
+
 # ---------------------------------------------------------------------------- #
 # ------------------- Pipeline configuration --------------------------------- #
 # ---------------------------------------------------------------------------- #
-shuffling = True
-augmentation = True
+SHUFFLING = True
+AUGMENTATION = True
 

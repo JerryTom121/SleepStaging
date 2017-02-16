@@ -1,3 +1,0 @@
-"binart.lua": BINary ARTifact classification. Contains the main network where all the relevant calculations are done. We classify epochs to artifact and non-artifact data.
-
-"fftbinart.lua": BINary ARTifact classification based on Fourier transformation of EEG/EMG signals.
