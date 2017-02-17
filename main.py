@@ -11,6 +11,7 @@ import os
 import subprocess
 import numpy as np
 from sklearn.externals import joblib
+from sklearn import metrics
 import sslib.preprocessing as prep
 import sslib.parsing as pars
 
@@ -75,7 +76,7 @@ def predict(recording):
                    .get_temporal_features()
     features = scaler.transform(features)
     features = to_be_removed(features) # TO BE REMOVED !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    np.savetxt(cfg.PATH_TO_CSV+recording+"_features.csv", features, delimiter=",")
+    #np.savetxt(cfg.PATH_TO_CSV+recording+"_features.csv", features, delimiter=",")
 
     # Make predictions
     print(subprocess.check_output([#'CUDA_VISIBLE_DEVICES=0',\
@@ -86,7 +87,7 @@ def predict(recording):
                     cfg.PATH_TO_CSV+recording.split('.')[0]+"_preds.csv"]))
     
     # Remove feature file
-    os.remove(cfg.PATH_TO_CSV+recording+"_features.csv")
+    #os.remove(cfg.PATH_TO_CSV+recording+"_features.csv")
 
 def evaluate(recording):
     """Evaluate prediction
@@ -98,13 +99,15 @@ def evaluate(recording):
                                    recording.split('.')[0]+".STD")\
                                    .get_binary_scorings()\
                                    .flatten()
-    # DO SOMETHING HERE
-    # ...
+
+    print "Confusion matrix: "
+    print metrics.confusion_matrix(truth, preds)
+
 # ---------------------------------------------------------------------------- #
 # --------------- Cleanup folder for .csv files ------------------------------ #
 # ---------------------------------------------------------------------------- #
-for file_ in os.listdir(cfg.PATH_TO_CSV):
-    os.remove(cfg.PATH_TO_CSV+file_)
+#for file_ in os.listdir(cfg.PATH_TO_CSV):
+#    os.remove(cfg.PATH_TO_CSV+file_)
 
 # ---------------------------------------------------------------------------- #
 # --------------- Train or load existing model ------------------------------- #
@@ -116,5 +119,5 @@ if RETRAIN_MODEL:
 # --------------- Evaluate accuracy on each file from test-data folder ------- #
 # ---------------------------------------------------------------------------- #
 for recording in os.listdir(cfg.PATH_TO_TEST_RECORDINGS):
-    predict(recording)
+ #   predict(recording)
     evaluate(recording)
