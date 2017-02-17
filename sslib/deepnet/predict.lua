@@ -1,8 +1,8 @@
+print("hhaha")
 require 'cunn'
 require 'paths'
 require 'csvigo'
-local inout = require 'lib.inout'
-
+local inout = require 'sslib.deepnet.lib.inout'
 
 nnmodel_path = arg[1]
 feature_path = arg[2]
@@ -14,3 +14,4 @@ print("## Load trained model")
 network = torch.load(nnmodel_path)
 
 print(network)
+--]]
