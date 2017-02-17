@@ -4,7 +4,7 @@
 # License:
 
 # Set the Training flag
-RETRAIN_MODEL = False
+TRAINING = False
 
 import config as cfg
 import os
@@ -54,9 +54,6 @@ def train_model():
     # Save scaler
     joblib.dump(scaler, cfg.PATH_TO_SCALER)
 
-
-
-
 def predict(recording):
     """Make predictions on a given recording
 
@@ -76,7 +73,7 @@ def predict(recording):
                    .get_temporal_features()
     features = scaler.transform(features)
     features = to_be_removed(features) # TO BE REMOVED !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    #np.savetxt(cfg.PATH_TO_CSV+recording+"_features.csv", features, delimiter=",")
+    np.savetxt(cfg.PATH_TO_CSV+recording+"_features.csv", features, delimiter=",")
 
     # Make predictions
     print(subprocess.check_output([#'CUDA_VISIBLE_DEVICES=0',\
@@ -87,7 +84,7 @@ def predict(recording):
                     cfg.PATH_TO_CSV+recording.split('.')[0]+"_preds.csv"]))
     
     # Remove feature file
-    #os.remove(cfg.PATH_TO_CSV+recording+"_features.csv")
+    os.remove(cfg.PATH_TO_CSV+recording+"_features.csv")
 
 def evaluate(recording):
     """Evaluate prediction
@@ -101,23 +98,31 @@ def evaluate(recording):
                                    .flatten()
 
     print "Confusion matrix: "
-    print metrics.confusion_matrix(truth, preds)
+    cmat = metrics.confusion_matrix(truth, preds)
+    print "----------------------------------------"
+    print "| EVAL: Artifact detection confusion matrix:"
+    print cmat
+    print "----------------------------------------"
+    print "| EVAL: Artifact detection evaluation:"
+    print "| Accuracy: " + format(metrics.accuracy_score(truth, preds, '.2f'))
+    print "| Recall: " + format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[0, 1]), '.2f')
+    print "| Precision: "+ format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[1, 0]), '.2f')
+    print "----------------------------------------"
+
+
 
 # ---------------------------------------------------------------------------- #
-# --------------- Cleanup folder for .csv files ------------------------------ #
+# ----- Retrain model or predict on existing, as specified ------------------- #
 # ---------------------------------------------------------------------------- #
-#for file_ in os.listdir(cfg.PATH_TO_CSV):
-#    os.remove(cfg.PATH_TO_CSV+file_)
-
-# ---------------------------------------------------------------------------- #
-# --------------- Train or load existing model ------------------------------- #
-# ---------------------------------------------------------------------------- #
-if RETRAIN_MODEL:
+if TRAINING:
+    # Retrain model
     train_model()
+else:
+    # Clean CSV directory
+    for file_ in os.listdir(cfg.PATH_TO_CSV):
+        os.remove(cfg.PATH_TO_CSV+file_)
+    # Predict and evaluate each test file
+    for recording in os.listdir(cfg.PATH_TO_TEST_RECORDINGS):
+        predict(recording)
+        evaluate(recording)
 
-# ---------------------------------------------------------------------------- #
-# --------------- Evaluate accuracy on each file from test-data folder ------- #
-# ---------------------------------------------------------------------------- #
-for recording in os.listdir(cfg.PATH_TO_TEST_RECORDINGS):
- #   predict(recording)
-    evaluate(recording)

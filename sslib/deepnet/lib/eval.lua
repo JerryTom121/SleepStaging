@@ -23,7 +23,7 @@ function M.predict(dataset,network)
 	-- Get the true label and our prediction
         local output = network:forward(input)
 	-- added for soft max version
-	if output[2]<output[1] then predictions[i]=-1 else predictions[i]=0 end
+	if output[2]<output[1] then predictions[i]=-1 else predictions[i]=1 end
 
     end
 

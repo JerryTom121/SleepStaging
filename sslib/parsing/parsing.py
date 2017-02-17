@@ -58,7 +58,7 @@ class RecordingsParserUZH(_RecordingsParser):
             emg = np.hstack([emg, data.X[data.chan_lab.index('EMG')]]) \
             if np.shape(emg)[0] else data.X[data.chan_lab.index('EMG')]
 
-            print "# Debug: recording " + filepath + " processed"
+            print "## Recording " + filepath + " parsed"
 
         return [eeg1, eeg2, emg, srate]
 
@@ -117,7 +117,7 @@ class _ScoringParser(object):
             scoring = self._parse(filepath)
             scorings = pd.concat([scorings, scoring])
 
-            print "# Debug: scoring " + filepath + " processed"
+            print "## Scoring " + filepath + " parsed"
 
         return scorings
 
