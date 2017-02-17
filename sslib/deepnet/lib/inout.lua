@@ -1,6 +1,5 @@
 local M = {};
 
-
 --------------------------------------------------------
 -- Load the data set in a appropriate Tensor format
 -- @param filepath path to file where data set is stored
@@ -15,11 +14,11 @@ function M.load_dataset(filepath,nchannels,nlabels)
 	local datasetCSV  = readCSV(filepath)
 
 	-- Infer the dimensions of loaded data set	
-	local nfeatures = datasetCSV:size(2) - 1 - nlabels
+	local nfeatures = datasetCSV:size(2) - nlabels
 	local nsamples  = datasetCSV:size(1)
 
-	-- Create data sets by discarding first column and using the last one as labels
-	dataset.data   =  datasetCSV[{{},{2,datasetCSV:size(2)-nlabels}}]
+	-- Create data sets
+	dataset.data   =  datasetCSV[{{},{1,datasetCSV:size(2)-nlabels}}]
 	if nlabels>0 then
 		dataset.label  =  datasetCSV[{{},{datasetCSV:size(2)-nlabels+1,datasetCSV:size(2)}}]
 	end

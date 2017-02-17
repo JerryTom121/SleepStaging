@@ -7,6 +7,7 @@ ASSUMPTIONS:
 	(3) EEG1 is frontal and EEG2 is parietal (or the opposite?)
 	(4) Files containing scorings are named the same as the ones containing raw
 	files
+        (5) File names do not contain dots
 
 TODO:
 	* Implement fourier and energy feature extractors in 

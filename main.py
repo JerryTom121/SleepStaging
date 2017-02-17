@@ -8,11 +8,17 @@ RETRAIN_MODEL = False
 
 import config as cfg
 import os
+import subprocess
 import numpy as np
 from sklearn.externals import joblib
 import sslib.preprocessing as prep
 import sslib.parsing as pars
 
+
+def to_be_removed(features):
+    """Temporary function. Remove when possible.
+    """
+    return features[:,::2] 
 
 def train_model():
     """Preform retraining using data given in /data folder. The model
@@ -68,22 +74,32 @@ def predict(recording):
     features = prep.FeatureExtractorUZH(cfg.PATH_TO_TEST_RECORDINGS+recording)\
                    .get_temporal_features()
     features = scaler.transform(features)
-    np.savetxt(cfg.PATH_TO_CSV+recording+"_features"+".csv", features, delimiter=",")
+    features = to_be_removed(features) # TO BE REMOVED !!!!!!!!!!!!!!!!!!!!!!!!!!!
+    np.savetxt(cfg.PATH_TO_CSV+recording+"_features.csv", features, delimiter=",")
 
-    # use lua to preform predictions on files which match "*_features.csv"
+    # Make predictions
+    print(subprocess.check_output([#'CUDA_VISIBLE_DEVICES=0',\
+                    'th',\
+                    'sslib/deepnet/predict.lua',\
+                    cfg.PATH_TO_NNMODEL,\
+                    cfg.PATH_TO_CSV+recording+"_features.csv",\
+                    cfg.PATH_TO_CSV+recording.split('.')[0]+"_preds.csv"]))
+    
+    # Remove feature file
+    os.remove(cfg.PATH_TO_CSV+recording+"_features.csv")
 
-    return None
-
-def evaluate_and_save_predictions(recording, predictions):
-    """Evaluate predictions on ground truth.
-    NYI
+def evaluate(recording):
+    """Evaluate prediction
     """
+    preds = np.genfromtxt(cfg.PATH_TO_CSV+recording.split('.')[0]+"_preds.csv",\
+                          skip_header=2,delimiter=',',dtype=int)
 
-import subprocess
-
-result = subprocess.check_output(['th', 'sslib/deepnet/predict.lua', cfg.PATH_TO_NNMODEL, cfg.PATH_TO_CSV])
-print result
-exit()
+    truth = pars.ScoringParserUZH(cfg.PATH_TO_TEST_SCORINGS+\
+                                   recording.split('.')[0]+".STD")\
+                                   .get_binary_scorings()\
+                                   .flatten()
+    # DO SOMETHING HERE
+    # ...
 # ---------------------------------------------------------------------------- #
 # --------------- Cleanup folder for .csv files ------------------------------ #
 # ---------------------------------------------------------------------------- #
@@ -100,5 +116,5 @@ if RETRAIN_MODEL:
 # --------------- Evaluate accuracy on each file from test-data folder ------- #
 # ---------------------------------------------------------------------------- #
 for recording in os.listdir(cfg.PATH_TO_TEST_RECORDINGS):
-    predictions = predict(recording)
-    evaluate_and_save_predictions(recording, predictions)
+    predict(recording)
+    evaluate(recording)
