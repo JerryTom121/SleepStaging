@@ -121,6 +121,7 @@ class _ScoringParser(object):
 
         return scorings
 
+
     def get_binary_scorings(self):
         """Get the scorings for artifact detection.
         """
