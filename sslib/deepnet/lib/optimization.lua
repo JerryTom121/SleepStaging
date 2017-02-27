@@ -11,6 +11,7 @@ function MBGD:__init(module, criterion, optimization, name)
    self.learningRateDecay = optimization.learningRateDecay
    self.maxIteration 	  = optimization.iterations
    self.batchSize 	  = optimization.batchSize
+   self.optbalance        = optimization.balanced
    self.module 		  = module
    self.criterion 	  = criterion
    self.weightDecay 	  = optimization.weightDecay or 0
@@ -26,6 +27,8 @@ function MBGD:train(trainSet)
    local iteration = 1
    local model = self.module
    local criterion = self.criterion
+
+   criterion.sizeAverage = false
 
    -- Number of samples
    local nsamples = trainSet:size()

@@ -6,6 +6,7 @@ feature extraction techniques.
 # License:
 
 import numpy as np
+import sklearn
 
 class _Normalizer(object):
     """Base function for feature normalization. The interface compiles
@@ -91,3 +92,14 @@ class NormalizerTemporal(_Normalizer):
         = (features[:, 2*ncols:3*ncols] - self.emg_mean)/self.emg_std
 
         return features
+
+class NormalizerEnergy(_Normalizer):
+
+    def __init__(self):
+        self.scaler = sklearn.preprocessing.StandardScaler()
+
+    def fit(self,features):
+        self.scaler.fit(features)
+
+    def transform(self,features):
+        return self.scaler.transform(features)

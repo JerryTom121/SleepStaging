@@ -62,11 +62,12 @@ function getOptimization()
 	-- change parameters here
 	local optimization = {}
 	optimization.pretrained        = false
-	optimization.learningRate      = 0.0001
-	optimization.learningRateDecay = 0.001
-	optimization.momentum	       = 0.6
-	optimization.batchSize         = 25
-	optimization.iterations        = 3
+	optimization.learningRate      = 0.00005
+	optimization.learningRateDecay = 0
+	optimization.momentum	       = 0
+	optimization.batchSize         = 1
+	optimization.iterations        = 6
+	optimization.balanced          = false
 
 	return optimization
 end
@@ -81,7 +82,6 @@ function getExperiment()
 	experiment.number    = 1
 	experiment.numChan   = 3
 	experiment.augType   = ''
-	experiment.name      = 'temporal_convolution'
 	experiment.normalize = false
 	
 	return experiment

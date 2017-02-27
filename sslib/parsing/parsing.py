@@ -66,8 +66,27 @@ class RecordingsParserUSZ(_RecordingsParser):
     """Class for parsing files given in USZ format.
     """
     def get_signals(self):
-        """NYI
         """
+        """
+
+        eeg1 = np.ndarray(0)
+        eeg2 = np.ndarray(0)
+        emg = np.ndarray(0)
+
+        for filepath in self.filepaths:
+
+            data = load_edf(filepath)
+            srate = int(round(data.sample_rate))
+            eeg1 = np.hstack([eeg1, data.X[data.chan_lab.index('Right-1')]]) \
+            if np.shape(eeg1)[0] else data.X[data.chan_lab.index('Right-1')]
+            eeg2 = np.hstack([eeg2, data.X[data.chan_lab.index('Left-1')]]) \
+            if np.shape(eeg2)[0] else data.X[data.chan_lab.index('Left-1')]
+            emg = np.hstack([emg, data.X[data.chan_lab.index('EMG-1')]]) \
+            if np.shape(emg)[0] else data.X[data.chan_lab.index('EMG-1')]
+
+            print "## Recording " + filepath + " parsed"
+
+        return [eeg1, eeg2, emg, srate]
 
 
 

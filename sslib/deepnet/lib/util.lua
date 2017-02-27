@@ -1,5 +1,15 @@
 local M = {};
 
+function M.get_class_weights(dataset)
+    
+    class_weights = torch.Tensor(2)
+    class_weights[1] = dataset:size() / dataset.label:eq(-1):sum()
+    class_weights[2] = dataset:size() / dataset.label:eq(1):sum()
+
+    return class_weights
+end
+
+
 -- Used to escape "'s by toCSV
 function escapeCSV (s)
    if string.find(s, '[,"]') then
