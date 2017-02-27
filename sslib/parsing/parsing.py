@@ -231,32 +231,3 @@ class ScoringParserUSZ(_ScoringParser):
                 "SWS": 2,                               # NREM
                 "PS":  3,                               # REM
                 "AW-art": 4, "SWS-art": 4, "PS-art": 4} # artifact
-
-
-class ScoringParserAUT(_ScoringParser):
-    """Class for parsing files given in the output
-    format of our algorithm
-    """
-
-    def _parse(self, filepath):
-        """Read labels given in 1 column .csv file format.
-
-        Parameters
-        ----------
-            filepath: path to .txt file containing labels
-
-        Returns
-        -------
-            Fetched labels given in Pandas DataFrame structure
-        """
-        scorings = pd.read_csv(filepath, dtype=str)
-        return scorings
-
-    def _get_binary_mapping(self):
-
-        return {"1": +1, "2": +1, "3": +1,   # regular
-                "4": -1}                     # artifact
-
-    def _get_4stage_mapping(self):
-
-        return {"1": 1, "2": 2, "3": 3, "4": 4} # idenitity mapping

@@ -15,30 +15,51 @@ import sslib.preprocessing as prep
 import sslib.parsing as pars
 from sslib.shallow import train as shtrain
 
+# ---------------------------------------------------------------------------- #
+# ----- Configure EEG/EMG recording, and scoring file format ----------------- #
+# ---------------------------------------------------------------------------- #
+if cfg.FORMAT == "UZH":
+    FeatureExtractor = prep.FeatureExtractorUZH
+    ScoringParser = pars.ScoringParserUZH
+    fextension = '.STD'
 
-def prepare_data():
+elif cfg.FORMAT == "USZ":
+    FeatureExtractor = prep.FeatureExtractorUSZ
+    ScoringParser = pars.ScoringParserUSZ
+    fextension = '.txt'
+
+else:
+    print "Uknown encoding: " + cfg.FORMAT
+    exit()
+
+# ---------------------------------------------------------------------------- #
+# ----- Utility functions ---------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
+def prepare():
     """
     """
 
     # Parse, normalize and save features
     scaler = prep.NormalizerTemporal()
-#    scaler = prep.NormalizerEnergy()
     recordings = []
     for recording in os.listdir(cfg.PATH_TO_TRAIN_RECORDINGS):
         recordings.append(cfg.PATH_TO_TRAIN_RECORDINGS+recording)
-
-#    features = prep.FeatureExtractorUSZ(recordings).get_temporal_features() ######## new
-#    features = prep.FeatureExtractorUSZ(recordings).get_energy_features() ######## new
-#    features = prep.FeatureExtractorUZH(recordings).get_energy_features() ######## new
-    features = prep.FeatureExtractorUZH(recordings).get_temporal_features()
+    features = FeatureExtractor(recordings).get_temporal_features()
     features = scaler.fit_transform(features)
     
     # Parse and save labels
     scorings = []
     for scoring in os.listdir(cfg.PATH_TO_TRAIN_SCORINGS):
         scorings.append(cfg.PATH_TO_TRAIN_SCORINGS+scoring)
-#    labels = pars.ScoringParserUSZ(scorings).get_binary_scorings() ######### new
-    labels = pars.ScoringParserUZH(scorings).get_binary_scorings()
+    if cfg.PROBLEM_TYPE == "ART":
+        labels = pars.ScoringParser(scorings).get_binary_scorings()
+    elif cfg.PROBLEM_TYPE == "SS":
+        labels = pars.ScoringParser(scorings).get_4stage_scorings()
+    else:
+        print "Uknown problem type: " + cfg.PROBLEM_TYPE
+        exit()
+        
+    # make sure we do not have more labels than features
     features = features[0:len(labels),:]
 
     # Clean CSV directory
@@ -53,7 +74,7 @@ def prepare_data():
     # Save scaler
     joblib.dump(scaler, cfg.PATH_TO_SCALER)
 
-def train_model():
+def train():
     """Preform retraining using data given in /data folder. The model
     parameters will be saved in the corresponding folder.
     """
@@ -76,14 +97,10 @@ def predict(recording):
         Numpy array of predictions
 
     """
-    print recording
+    
     # Fetch and transform features
-    if recording.split('.')[0]=='Trial1' or recording.split('.')[0]=='Trial2':
-        features = prep.FeatureExtractorUSZ(cfg.PATH_TO_TEST_RECORDINGS+recording)\
-                   .get_temporal_features()
-    else:
-        features = prep.FeatureExtractorUZH(cfg.PATH_TO_TEST_RECORDINGS+recording)\
-                       .get_temporal_features()
+    features = FeatureExtractor(cfg.PATH_TO_TEST_RECORDINGS+recording)\
+               .get_temporal_features()
     scaler = joblib.load(cfg.PATH_TO_SCALER)
     features = scaler.transform(features)
     np.savetxt(cfg.PATH_TO_CSV+recording+"_features.csv", features, delimiter=",")
@@ -99,22 +116,26 @@ def predict(recording):
 def evaluate(recording):
     """Evaluate prediction
     """
+
+    # Read previously generated predictions
     preds = np.genfromtxt(cfg.PATH_TO_CSV+recording.split('.')[0]+"_preds.csv",\
                           skip_header=2,delimiter=',',dtype=int)
 
-    
-    if recording.split('.')[0]=='Trial1' or recording.split('.')[0]=='Trial2':
-        truth = pars.ScoringParserUSZ(cfg.PATH_TO_TEST_SCORINGS+\
-                                       recording.split('.')[0]+".txt")\
-                                       .get_binary_scorings()\
-                                       .flatten()
-        if len(truth)<len(preds):
-            preds = preds[0:len(truth)]
+    # Read corresponding labels
+    sparser = ScoringParser(cfg.PATH_TO_TEST_SCORINGS+\
+                            recording.split('.')[0]+fextension)
+    if cfg.PROBLEM_TYPE == "ART":
+        truth = sparser.get_binary_scorings().flatten()
+
+    elif cfg.PROBLEM_TYPE == "SS":
+        truth = sparser.get_4stage_scorings().flatten()
+
     else:
-        truth = pars.ScoringParserUZH(cfg.PATH_TO_TEST_SCORINGS+\
-                                       recording.split('.')[0]+".STD")\
-                                       .get_binary_scorings()\
-                                       .flatten()
+        print "Uknown problem type: " + cfg.PROBLEM_TYPE
+        exit()
+
+    # Make sure we have number of predictions equal to number of labels
+    preds = preds[0:len(truth)]
 
     print "Confusion matrix: "
     cmat = metrics.confusion_matrix(truth, preds)
@@ -128,18 +149,16 @@ def evaluate(recording):
     print "| Precision: "+ format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[1, 0]), '.2f')
     print "----------------------------------------"
 
-
-
 # ---------------------------------------------------------------------------- #
-# ----- Retrain model or predict on existing, as specified ------------------- #
+# - Parse command to process data, train a model or evaluate already trained - #
 # ---------------------------------------------------------------------------- #
 command = sys.argv[1]
 
 if command == 'prepare':
-    prepare_data()
+    prepare()
 
 elif command == 'train':
-    train_model()
+    train()
 
 elif command == 'evaluate':
     # predict and evalute scorings for each file of the test folder

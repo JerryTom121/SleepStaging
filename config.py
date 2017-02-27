@@ -24,15 +24,9 @@ PATH_TO_MODELS = "./models/"
 PATH_TO_SCALER = PATH_TO_MODELS + "scaler.pkl"
 PATH_TO_NNMODEL = PATH_TO_MODELS + ARCHITECTURE
 # ---------------------------------------------------------------------------- #
-# ------------------ Deep learning configuration ----------------------------- #
+# ----------------- Encoding ------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
-
-
-
-
-# ---------------------------------------------------------------------------- #
-# ------------------- Pipeline configuration --------------------------------- #
-# ---------------------------------------------------------------------------- #
-SHUFFLING = True
-AUGMENTATION = True
+FORMAT = "UZH" # So far implemented are "UZH" and "USZ"
+PROBLEM_TYPE = "ART" # We have: "ART" - artifact detection
+                     #          "SS" - full sleep staging
 
