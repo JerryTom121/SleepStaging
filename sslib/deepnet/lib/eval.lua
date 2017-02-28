@@ -21,10 +21,8 @@ function M.predict(dataset,network)
 	-- Construct input based on the network type
 	local input = dataset.data[i]
 	-- Get the true label and our prediction
-        local output = network:forward(input)
-	-- added for soft max version
-	if output[2]<output[1] then predictions[i]=-1 else predictions[i]=1 end
-
+        val, ind = torch.max(network:forward(input), 1)
+        predictions[i] = ind[1]
     end
 
     -- return

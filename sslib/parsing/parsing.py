@@ -116,13 +116,13 @@ class _ScoringParser(object):
 
 
     def _parse(self, filepath):
-        """To be implemented in derived classes
+        """abstract
         """
     def _get_binary_mapping(self):
-        """To be implemented in derived classes
+        """abstract
         """
     def _get_4stage_mapping(self):
-        """To be implemented in derived classes
+        """abstract
         """
 
     def get_raw_scorings(self):
@@ -132,10 +132,8 @@ class _ScoringParser(object):
         scorings = pd.DataFrame(columns=['label'])
 
         for filepath in self.filepaths:
-
             scoring = self._parse(filepath)
             scorings = pd.concat([scorings, scoring])
-
             print "## Scoring " + filepath + " parsed"
 
         return scorings
@@ -144,17 +142,21 @@ class _ScoringParser(object):
     def get_binary_scorings(self):
         """Get the scorings for artifact detection.
         """
+
         scorings = self.get_raw_scorings()
         mapped_scorings = \
         scorings.replace({"label": self._get_binary_mapping()})
+        print mapped_scorings["label"].value_counts()
         return np.array(mapped_scorings)
 
     def get_4stage_scorings(self):
         """Get the scorings for full sleep staging.
         """
+
         scorings = self.get_raw_scorings()
         mapped_scorings = \
         scorings.replace({"label": self._get_4stage_mapping()})
+        print mapped_scorings["label"].value_counts()
         return np.array(mapped_scorings)
 
 
@@ -185,15 +187,17 @@ class ScoringParserUZH(_ScoringParser):
 
     def _get_binary_mapping(self):
 
-        return {"w": +1, "n": +1, "r": +1,                            #regular
-                "1": -1, "2": -1, "3": -1, "a": -1, "'": -1, "4": -1} #artifact
+        return {"w": 2, "n": 2, "r": 2,                         # regular
+                "1": 1, "2": 1, "3": 1, "a": 1, "'": 1, "4": 1, # artifact
+                "U": 5}                                         # uknown/ambigious
 
     def _get_4stage_mapping(self):
 
-        return {"w": 1,                                           # WAKE
-                "n": 2,                                           # NREM
-                "r": 3,                                           # REM
-                "1": 4, "2": 4, "3": 4, "a": 4, "'": 4, "4": 4}   # artifact
+        return {"w": 1,                                         # WAKE
+                "n": 2,                                         # NREM
+                "r": 3,                                         # REM
+                "1": 4, "2": 4, "3": 4, "a": 4, "'": 4, "4": 4, # artifact
+                "U": 5}                                         # uknown/ambigious
 
 class ScoringParserUSZ(_ScoringParser):
     """Class for parsing files given in USZ.0 format"""
@@ -222,8 +226,8 @@ class ScoringParserUSZ(_ScoringParser):
 
     def _get_binary_mapping(self):
 
-        return {"AW": +1, "SWS": +1, "PS": +1,             # regular
-                "AW-art": -1, "SWS-art": -1, "PS-art": -1} # artifact
+        return {"AW": 2, "SWS": 2, "PS": 2,             # regular
+                "AW-art": 1, "SWS-art": 1, "PS-art": 1} # artifact
 
     def _get_4stage_mapping(self):
 

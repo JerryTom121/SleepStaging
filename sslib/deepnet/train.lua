@@ -16,29 +16,28 @@ local inout = require 'sslib.deepnet.lib.inout'
 local debug = require 'sslib.deepnet.lib.debug'
 local util = require 'sslib.deepnet.lib.util'
 
-
 training_data_path = arg[1]
 trained_model_path = arg[2]
-config_file = arg[3]
+architecture = arg[3]
 
-paths.dofile('configs/' .. config_file .. '.lua')
+paths.dofile('architecture/' .. architecture .. '.lua')
 network      = getModel()
 optimization = getOptimization()
 experiment   = getExperiment()
 
-debug.outputParameters(network,optimization,experiment)
+debug.outputParameters(network, optimization, experiment)
 
 print("## Load training data...")
-dataset = inout.load_dataset(training_data_path,3,1)
+dataset = inout.load_dataset(training_data_path, 3, 1)
 
-class_weights = util.get_class_weights(dataset)
 print("## Class weights: ")
+class_weights = util.get_class_weights(dataset, optimization.classes)
 print(class_weights)
 
 print('## Training of the neural network begins...')
 local timer = torch.Timer()
-trainer = nn.MBGD(network,nn.ClassNLLCriterion(class_weights),optimization,config_file)
+trainer = nn.MBGD(network, nn.ClassNLLCriterion(class_weights), optimization, architecture, optimization.classes)
 trainer:train(dataset)
-print('## Time elapsed for training neural net: ' .. timer:time().real .. ' seconds\n')
 
-torch.save(trained_model_path..config_file,network)
+print('## Time elapsed for training neural net: ' .. timer:time().real .. ' seconds\n')
+torch.save(trained_model_path .. architecture, network)

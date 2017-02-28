@@ -6,17 +6,18 @@ local MBGD = torch.class('nn.MBGD')
 
 
 
-function MBGD:__init(module, criterion, optimization, name)
+function MBGD:__init(module, criterion, optimization, name, classes)
+   self.module 		  = module
+   self.criterion 	  = criterion
    self.learningRate 	  = optimization.learningRate
    self.learningRateDecay = optimization.learningRateDecay
    self.maxIteration 	  = optimization.iterations
    self.batchSize 	  = optimization.batchSize
    self.optbalance        = optimization.balanced
-   self.module 		  = module
-   self.criterion 	  = criterion
    self.weightDecay 	  = optimization.weightDecay or 0
    self.momentum 	  = 0
    self.name		  = name
+   self.classes           = classes
 end
 
 
@@ -27,17 +28,25 @@ function MBGD:train(trainSet)
    local iteration = 1
    local model = self.module
    local criterion = self.criterion
+   local classes = self.classes
 
    criterion.sizeAverage = false
+   
+   -- Temporary solution to speed up learning 
+   -- to be used only before recurrency is introduced!!!
+   -- we remove all rows which contain label '4'-artifact
+   print('Before it was: '..trainSet:size())
+   trainSet.data = trainSet.data[{trainSet.label:lt(4),{},{}}]
+   trainSet.label = trainSet.label[trainSet.label:lt(4)]
 
    -- Number of samples
    local nsamples = trainSet:size()
    print('Number of samples is '..nsamples)
 
    -- confusion
-   confusion = optim.ConfusionMatrix({1,2})
+   confusion = optim.ConfusionMatrix(classes)
 
-   -- make sure our network is in a training mode
+   -- make sure our network is in the training mode
    model:training()
 
    -- move to CUDA
@@ -59,8 +68,12 @@ function MBGD:train(trainSet)
    } 
 
    -- Output training
-   print("## Mini Batch Gradient Descent training started")
-   print("Batch size = "..self.batchSize)	
+   if self.batchSize>1 then
+	   print("## Mini Batch Gradient Descent training started...")
+	   print("Batch size = "..self.batchSize)
+   else 
+	   print("## Stochastic Gradient Descent training started...")
+   end
 
    -- Iterate until specified
    while true do
@@ -68,6 +81,7 @@ function MBGD:train(trainSet)
       local time = sys.clock()
       
       -- shuffle before creating mini-batches
+      -- Also remove shuffling when introducing recurrency !!!
       local shuffle = torch.randperm(nsamples, 'torch.LongTensor')
 
       print("-------------")
@@ -92,31 +106,26 @@ function MBGD:train(trainSet)
 
 	 -- closure function for optimization
 	 local feval = function(x)
-				-- get new parameters
-				if x~=parameters then
-					parameters:copy(x)
-				end
-				-- reset gradients
-				gradParameters:zero()
-				-- f is the average of all criterions
-				local f = 0
-				-- evaluate function for complete mini batch
-				for i = 1,#inputs do
-					-- get label
-					if (targets[i][1]<0)   then label = 1 else label = 2 end
-					-- process current sample of the batch
-					f = f + criterion:forward(model:forward(inputs[i]),label)
-					model:backward(inputs[i],criterion:backward(model.output,label))
-					-- update confusion matrix
-					if (model.output[2]<model.output[1]) then pred = 1  else pred = 2  end
-					confusion:add(pred,label)
-				end
-				-- normalize gradients and f(X)
-				gradParameters:div(#inputs)
-				f = f/#inputs
-				-- return
-				return f,gradParameters
-	   		 end
+		-- get new parameters
+		if x~=parameters then
+			parameters:copy(x)
+		end
+		-- reset gradients
+		gradParameters:zero()
+		-- f is the average of all criterions
+		local f = 0
+		for i = 1,#inputs do
+			-- process current sample of the batch
+			f = f + criterion:forward(model:forward(inputs[i]),targets[i])
+			model:backward(inputs[i],criterion:backward(model.output,targets[i]))
+                	confusion:add(model.output,targets[i])
+		end
+		-- normalize gradients and f(X)
+		gradParameters:div(#inputs)
+		f = f/#inputs
+		-- return
+		return f,gradParameters
+	 end
 		
        -- do the optimization for the current mini-batch			
        --optim.adagrad(feval, parameters, optimState)
@@ -127,9 +136,8 @@ function MBGD:train(trainSet)
 
       -- time taken
       time = sys.clock() - time
-      time = time / nsamples
       print ("\n==> overall time = "..(time*100000)..'s')
-      print ("\n==> time to learn 1 sample = "..(time*100)..'ms')
+      print ("\n==> time to learn 1 sample = "..(time/nsamples*100)..'ms')
 
       -- confusion matrix
       print(confusion)

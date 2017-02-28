@@ -19,10 +19,10 @@ print("## Load trained model")
 network = torch.load(model_path)
 
 print("## Load data set")
-dataset = inout.load_dataset(dataset_path,3,0)
+dataset = inout.load_dataset(dataset_path, 3, 0)
 
 print("## Generate predictions")
-predictions = eval.predict(dataset,network)
+predictions = eval.predict(dataset, network)
 
 print("## Write predictions into a file")
-torch.save(output_path,util.toCSV(predictions),'ascii')
+torch.save(output_path, util.toCSV(predictions), 'ascii')

@@ -1,10 +1,11 @@
 local M = {};
 
-function M.get_class_weights(dataset)
+function M.get_class_weights(dataset,classes)
     
-    class_weights = torch.Tensor(2)
-    class_weights[1] = dataset:size() / dataset.label:eq(-1):sum()
-    class_weights[2] = dataset:size() / dataset.label:eq(1):sum()
+    class_weights = torch.Tensor(#classes)
+    for i = 1,#classes do
+        class_weights[i] = dataset:size() / dataset.label:eq(classes[i]):sum()
+    end
 
     return class_weights
 end

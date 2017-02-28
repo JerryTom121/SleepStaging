@@ -5,8 +5,17 @@ Global configuration parameters.
 # License:
 
 
-
-ARCHITECTURE = "temporal_convolution"
+# ---------------------------------------------------------------------------- #
+# ----------------- Encoding ------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
+FORMAT = "UZH" # So far implemented are "UZH" and "USZ"
+# Currently we are able to solve two problems
+# "ART" - artifact detection
+# "SS" - full sleep staging
+PROBLEM_TYPE = "ART"
+# The name of the corresponding neural network architecture
+ITERATION = ""
+ARCHITECTURE = "temporal_convolution"+"_"+FORMAT+"_"+PROBLEM_TYPE+ITERATION
 # ---------------------------------------------------------------------------- #
 # ------------------- File paths --------------------------------------------- #
 # ---------------------------------------------------------------------------- #
@@ -23,10 +32,3 @@ PATH_TO_TRAINING = PATH_TO_CSV + "training.csv"
 PATH_TO_MODELS = "./models/"
 PATH_TO_SCALER = PATH_TO_MODELS + "scaler.pkl"
 PATH_TO_NNMODEL = PATH_TO_MODELS + ARCHITECTURE
-# ---------------------------------------------------------------------------- #
-# ----------------- Encoding ------------------------------------------------- #
-# ---------------------------------------------------------------------------- #
-FORMAT = "UZH" # So far implemented are "UZH" and "USZ"
-PROBLEM_TYPE = "ART" # We have: "ART" - artifact detection
-                     #          "SS" - full sleep staging
-

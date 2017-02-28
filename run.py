@@ -22,12 +22,10 @@ if cfg.FORMAT == "UZH":
     FeatureExtractor = prep.FeatureExtractorUZH
     ScoringParser = pars.ScoringParserUZH
     fextension = '.STD'
-
 elif cfg.FORMAT == "USZ":
     FeatureExtractor = prep.FeatureExtractorUSZ
     ScoringParser = pars.ScoringParserUSZ
     fextension = '.txt'
-
 else:
     print "Uknown encoding: " + cfg.FORMAT
     exit()
@@ -52,12 +50,9 @@ def prepare():
     for scoring in os.listdir(cfg.PATH_TO_TRAIN_SCORINGS):
         scorings.append(cfg.PATH_TO_TRAIN_SCORINGS+scoring)
     if cfg.PROBLEM_TYPE == "ART":
-        labels = pars.ScoringParser(scorings).get_binary_scorings()
+        labels = ScoringParser(scorings).get_binary_scorings()
     elif cfg.PROBLEM_TYPE == "SS":
-        labels = pars.ScoringParser(scorings).get_4stage_scorings()
-    else:
-        print "Uknown problem type: " + cfg.PROBLEM_TYPE
-        exit()
+        labels = ScoringParser(scorings).get_4stage_scorings()
         
     # make sure we do not have more labels than features
     features = features[0:len(labels),:]
@@ -80,10 +75,10 @@ def train():
     """
 
     print "# Debug: model is being retrained... "
-    os.system('th sslib/deepnet/train.lua '+cfg.PATH_TO_TRAINING+' '\
-                                           +cfg.PATH_TO_MODELS+' '\
-                                           +cfg.ARCHITECTURE)
-    #shtrain(cfg.PATH_TO_TRAINING)
+    os.system('th sslib/deepnet/train.lua ' \
+              + cfg.PATH_TO_TRAINING + ' '\
+              + cfg.PATH_TO_MODELS + ' '\
+              + cfg.ARCHITECTURE)
 
 def predict(recording):
     """Make predictions on a given recording
@@ -91,11 +86,9 @@ def predict(recording):
     Parameters
     ----------
         recording: EEG/EMG recording on which we evaluate our model
-
     Returns
     -------
         Numpy array of predictions
-
     """
     
     # Fetch and transform features
@@ -106,10 +99,11 @@ def predict(recording):
     np.savetxt(cfg.PATH_TO_CSV+recording+"_features.csv", features, delimiter=",")
 
     # Make predictions
-    os.system('th sslib/deepnet/predict.lua ' + cfg.PATH_TO_NNMODEL+' '\
-                                              + cfg.PATH_TO_CSV+recording+'_features.csv '\
-                                              + cfg.PATH_TO_CSV+recording.split('.')[0]+'_preds.csv')
-
+    os.system('th sslib/deepnet/predict.lua ' \
+              + cfg.PATH_TO_NNMODEL + ' '\
+              + cfg.PATH_TO_CSV + recording + '_features.csv '\
+              + cfg.PATH_TO_CSV + recording.split('.')[0] + '_preds.csv')
+    
     # Remove feature file
     os.remove(cfg.PATH_TO_CSV+recording+"_features.csv")
 
@@ -126,13 +120,8 @@ def evaluate(recording):
                             recording.split('.')[0]+fextension)
     if cfg.PROBLEM_TYPE == "ART":
         truth = sparser.get_binary_scorings().flatten()
-
     elif cfg.PROBLEM_TYPE == "SS":
         truth = sparser.get_4stage_scorings().flatten()
-
-    else:
-        print "Uknown problem type: " + cfg.PROBLEM_TYPE
-        exit()
 
     # Make sure we have number of predictions equal to number of labels
     preds = preds[0:len(truth)]
@@ -156,16 +145,13 @@ command = sys.argv[1]
 
 if command == 'prepare':
     prepare()
-
 elif command == 'train':
     train()
-
 elif command == 'evaluate':
     # predict and evalute scorings for each file of the test folder
     for recording in os.listdir(cfg.PATH_TO_TEST_RECORDINGS):
         predict(recording)
         evaluate(recording)
-
 else:
     print "Unknown command!"
 
