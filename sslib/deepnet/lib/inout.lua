@@ -23,7 +23,7 @@ function M.load_dataset(filepath,nchannels,nlabels)
 	if nlabels>0 then
 		dataset.label  =  datasetCSV[{{},{datasetCSV:size(2)-nlabels+1,datasetCSV:size(2)}}]
 	end
-
+	
 	-- Reshape data sets to fit the convolutional  network architecture if specified
 	if (nchannels>1) then
 		dataset.data = torch.reshape(dataset.data,nsamples,nchannels,nfeatures/nchannels)

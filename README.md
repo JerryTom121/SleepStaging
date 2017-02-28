@@ -1,3 +1,3 @@
 ## Sleep Staging
 
-We aim to build a framework for the classification of EEG and EMG signals with respect to the sleeping state of the subject.
+This project aims to build a software framework for the classification of EEG(Electroencephalography) and EMG(Electromyography) time series. Each recording consists of a 3 dimensional signal - 2 EEG placed on the parietal/frontal part of the subject's head, and 1 EMG recorded on the neck. The signals are sliced into intervals of equal size (epochs) and labeled by human experts. Each label indicates the sleeping state of the subject during corresponding epoch. The software designed here allows automatic supervised learning using bi-recurrent convolutional networks for automated sleep staging (sleep scoring). Even though the framework was initially meant for sleep stagining of mice and rats, with suitable modifications it could be transfered to other type of subjects.
