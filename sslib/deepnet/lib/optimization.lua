@@ -35,9 +35,11 @@ function MBGD:train(trainSet)
    -- Temporary solution to speed up learning 
    -- to be used only before recurrency is introduced!!!
    -- we remove all rows which contain label '4'-artifact
+   -- and an ambigious scorings - '5'
    print('Before it was: '..trainSet:size())
-   trainSet.data = trainSet.data[{trainSet.label:lt(4),{},{}}]
-   trainSet.label = trainSet.label[trainSet.label:lt(4)]
+   selected = trainSet.label:lt(4):nonzero()[{{},1}]
+   trainSet.data = trainSet.data:index(1,selected)
+   trainSet.label = trainSet.label:index(1,selected)
 
    -- Number of samples
    local nsamples = trainSet:size()
