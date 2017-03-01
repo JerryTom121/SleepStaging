@@ -12,7 +12,7 @@ FORMAT = "UZH" # So far implemented are "UZH" and "USZ"
 # Currently we are able to solve two problems
 # "ART" - artifact detection
 # "SS" - full sleep staging
-PROBLEM_TYPE = "ART"
+PROBLEM_TYPE = "SS"
 # The name of the corresponding neural network architecture
 ITERATION = ""
 ARCHITECTURE = "temporal_convolution"+"_"+FORMAT+"_"+PROBLEM_TYPE+ITERATION

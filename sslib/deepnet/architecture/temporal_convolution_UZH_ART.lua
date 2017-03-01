@@ -15,7 +15,7 @@ function getOptimization()
         -- change parameters here
         local optimization = {}
         optimization.pretrained        = false
-        optimization.learningRate      = 0.00005
+        optimization.learningRate      = 0.0002
         optimization.learningRateDecay = 0
         optimization.momentum          = 0
         optimization.batchSize         = 1

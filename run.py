@@ -69,18 +69,21 @@ def prepare():
     # Save scaler
     joblib.dump(scaler, cfg.PATH_TO_SCALER)
 
-def train():
+def train(gpu):
     """Preform retraining using data given in /data folder. The model
     parameters will be saved in the corresponding folder.
     """
+    
+    print "# Debug: model is being retrained... specified GPU is: "+gpu
+    
+    if gpu != '': gpu = "CUDA_VISIBLE_DEVICES="+gpu+" "
 
-    print "# Debug: model is being retrained... "
-    os.system('th sslib/deepnet/train.lua ' \
+    os.system(gpu + 'th sslib/deepnet/train.lua ' \
               + cfg.PATH_TO_TRAINING + ' '\
               + cfg.PATH_TO_MODELS + ' '\
               + cfg.ARCHITECTURE)
 
-def predict(recording):
+def predict(recording, gpu):
     """Make predictions on a given recording
 
     Parameters
@@ -98,8 +101,11 @@ def predict(recording):
     features = scaler.transform(features)
     np.savetxt(cfg.PATH_TO_CSV+recording+"_features.csv", features, delimiter=",")
 
+    # Specify gpu
+    if gpu != '': gpu = "CUDA_VISIBLE_DEVICES="+gpu+" "
+
     # Make predictions
-    os.system('th sslib/deepnet/predict.lua ' \
+    os.system(gpu + 'th sslib/deepnet/predict.lua ' \
               + cfg.PATH_TO_NNMODEL + ' '\
               + cfg.PATH_TO_CSV + recording + '_features.csv '\
               + cfg.PATH_TO_CSV + recording.split('.')[0] + '_preds.csv')
@@ -126,31 +132,39 @@ def evaluate(recording):
     # Make sure we have number of predictions equal to number of labels
     preds = preds[0:len(truth)]
 
-    print "Confusion matrix: "
     cmat = metrics.confusion_matrix(truth, preds)
     print "----------------------------------------"
-    print "| EVAL: Artifact detection confusion matrix:"
+    print "| EVAL: Confusion matrix:"
     print cmat
     print "----------------------------------------"
-    print "| EVAL: Artifact detection evaluation:"
-    print "| Accuracy: " + format(metrics.accuracy_score(truth, preds, '.2f'))
-    print "| Recall: " + format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[0, 1]), '.2f')
-    print "| Precision: "+ format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[1, 0]), '.2f')
-    print "----------------------------------------"
+    if cfg.PROBLEM_TYPE == "ART":
+        print "| EVAL: Artifact detection evaluation:"
+        print "| Accuracy: " + format(metrics.accuracy_score(truth[truth<3], preds[truth<3], '.2f'))
+        print "| Recall: " + format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[0, 1]), '.2f')
+        print "| Precision: "+ format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[1, 0]), '.2f')
+        print "----------------------------------------"
+    elif cfg.PROBLEM_TYPE == "SS":
+        print "| EVAL: Artifact detection evaluation:"
+        print "| Accuracy: " + format(metrics.accuracy_score(truth[truth<4], preds[truth<4], '.2f'))
+        print "----------------------------------------"
 
 # ---------------------------------------------------------------------------- #
 # - Parse command to process data, train a model or evaluate already trained - #
 # ---------------------------------------------------------------------------- #
 command = sys.argv[1]
+if len(sys.argv)>2:
+    gpu = sys.argv[2]
+else:
+    gpu = ""
 
 if command == 'prepare':
     prepare()
 elif command == 'train':
-    train()
+    train(gpu)
 elif command == 'evaluate':
     # predict and evalute scorings for each file of the test folder
     for recording in os.listdir(cfg.PATH_TO_TEST_RECORDINGS):
-        predict(recording)
+        predict(recording, gpu)
         evaluate(recording)
 else:
     print "Unknown command!"

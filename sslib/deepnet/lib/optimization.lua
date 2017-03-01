@@ -118,9 +118,9 @@ function MBGD:train(trainSet)
 		local f = 0
 		for i = 1,#inputs do
 			-- process current sample of the batch
-			f = f + criterion:forward(model:forward(inputs[i]),targets[i])
-			model:backward(inputs[i],criterion:backward(model.output,targets[i]))
-                	confusion:add(model.output,targets[i])
+			f = f + criterion:forward(model:forward(inputs[i]),targets[i][1])
+			model:backward(inputs[i],criterion:backward(model.output,targets[i][1]))
+                	confusion:add(model.output,targets[i][1])
 		end
 		-- normalize gradients and f(X)
 		gradParameters:div(#inputs)
