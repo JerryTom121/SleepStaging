@@ -61,7 +61,7 @@ function getModel()
 
     -- FC layers
     denseNetwork1       = 400
-    denseNetwork2	= 400
+--    denseNetwork2	= 400
 
     -- feature extractor
     convnet = nn.Sequential()
@@ -94,10 +94,10 @@ function getModel()
 	    :add(nn.Dropout(0.5))
 	    :add(nn.Linear(CONV_L2_featureMaps*signal,denseNetwork1))
 	    :add(nn.ReLU())                                 -- :add(nn.Threshold(0, 1e-6)) instead of RELU?????
-	    :add(nn.Dropout(0.5))
-	    :add(nn.Linear(denseNetwork1,denseNetwork2))
-	    :add(nn.ReLU())                                 -- :add(nn.Threshold(0, 1e-6)) instead of RELU?????
-	    :add(nn.Linear(denseNetwork2,#getOptimization().classes))
+--	    :add(nn.Dropout(0.5))
+--	    :add(nn.Linear(denseNetwork1,denseNetwork2))
+--	    :add(nn.ReLU())                                 -- :add(nn.Threshold(0, 1e-6)) instead of RELU?????
+	    :add(nn.Linear(denseNetwork1,#getOptimization().classes))
 	    :add(nn.LogSoftMax())
     return net
 end
