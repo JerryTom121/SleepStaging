@@ -54,7 +54,7 @@ def prepare():
     elif cfg.PROBLEM_TYPE == "SS":
         labels = ScoringParser(scorings).get_4stage_scorings()
         
-    # make sure we do not have more labels than features
+    # Make sure we do not have more labels than features
     features = features[0:len(labels),:]
 
     # Clean CSV directory
@@ -83,7 +83,7 @@ def train(gpu):
               + cfg.PATH_TO_MODELS + ' '\
               + cfg.ARCHITECTURE)
 
-def predict(recording, gpu):
+def predict(recording, gpu, iteration):
     """Make predictions on a given recording
 
     Parameters
@@ -99,26 +99,26 @@ def predict(recording, gpu):
                .get_temporal_features()
     scaler = joblib.load(cfg.PATH_TO_SCALER)
     features = scaler.transform(features)
-    np.savetxt(cfg.PATH_TO_CSV+recording+"_features.csv", features, delimiter=",")
+    np.savetxt(cfg.PATH_TO_CSV+recording+"_features"+iteration+".csv", features, delimiter=",")
 
     # Specify gpu
     if gpu != '': gpu = "CUDA_VISIBLE_DEVICES="+gpu+" "
 
     # Make predictions
     os.system(gpu + 'th sslib/deepnet/predict.lua ' \
-              + cfg.PATH_TO_NNMODEL + ' '\
-              + cfg.PATH_TO_CSV + recording + '_features.csv '\
-              + cfg.PATH_TO_CSV + recording.split('.')[0] + '_preds.csv')
+              + cfg.PATH_TO_NNMODEL + iteration +' '\
+              + cfg.PATH_TO_CSV + recording + '_features'+iteration+'.csv '\
+              + cfg.PATH_TO_CSV + recording.split('.')[0] + '_preds'+iteration+'.csv')
     
     # Remove feature file
-    os.remove(cfg.PATH_TO_CSV+recording+"_features.csv")
+    os.remove(cfg.PATH_TO_CSV+recording+"_features"+iteration+".csv")
 
-def evaluate(recording):
+def evaluate(recording, iteration):
     """Evaluate prediction
     """
 
     # Read previously generated predictions
-    preds = np.genfromtxt(cfg.PATH_TO_CSV+recording.split('.')[0]+"_preds.csv",\
+    preds = np.genfromtxt(cfg.PATH_TO_CSV+recording.split('.')[0]+"_preds"+iteration+".csv",\
                           skip_header=2,delimiter=',',dtype=int)
 
     # Read corresponding labels
@@ -144,7 +144,7 @@ def evaluate(recording):
         print "| Precision: "+ format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[1, 0]), '.2f')
         print "----------------------------------------"
     elif cfg.PROBLEM_TYPE == "SS":
-        print "| EVAL: Artifact detection evaluation:"
+        print "| EVAL: Sleep staging:"
         print "| Accuracy: " + format(metrics.accuracy_score(truth[truth<4], preds[truth<4], '.2f'))
         print "----------------------------------------"
 
@@ -157,6 +157,11 @@ if len(sys.argv)>2:
 else:
     gpu = ""
 
+if len(sys.argv)>3:
+    it = "_iter=" + sys.argv[3]
+else:
+    it = ""
+
 if command == 'prepare':
     prepare()
 elif command == 'train':
@@ -164,8 +169,8 @@ elif command == 'train':
 elif command == 'evaluate':
     # predict and evalute scorings for each file of the test folder
     for recording in os.listdir(cfg.PATH_TO_TEST_RECORDINGS):
-        predict(recording, gpu)
-        evaluate(recording)
+        predict(recording, gpu, it)
+        evaluate(recording, it)
 else:
     print "Unknown command!"
 
