@@ -9,7 +9,7 @@ require 'math'
 -- Predict artifacts on a given data set
 -- @param dataset testing data set
 --------------------------------------------------
-function M.predict(dataset,network)
+function M.predict(dataset, network)
 
     -- make sure the network is in evaluation mode
     network:evaluate()
@@ -21,7 +21,7 @@ function M.predict(dataset,network)
 	-- Construct input based on the network type
 	local input = dataset.data[i]
 	-- Get the true label and our prediction
-        val, ind = torch.max(network:forward(input), 1)
+        local val, ind = torch.max(network:forward(input), 1)
         predictions[i] = ind[1]
     end
 
@@ -29,8 +29,33 @@ function M.predict(dataset,network)
     return predictions
 end
 
+function M.predict_and_evaluate(testset, network)
 
+    -- make sure the network is in evaluation mode
+    network:evaluate()
 
+    -- Initialize counters
+    local nsamples = 0
+    local ncorrect = 0
+
+    for i=1, testset:size() do
+	-- At the moment, we skip labels greater than 4
+	-- (this should be implemented more elegantly...)
+	local truth = testset.label[i][1]
+	if truth<4 then
+		local input = testset.data[i]
+		local val, ind = torch.max(network:forward(input), 1)
+		local prediction = ind[1]
+		nsamples = nsamples + 1
+		if truth == prediction then
+			ncorrect = ncorrect + 1
+		end
+	end
+    end
+    
+    -- return
+    return ncorrect/nsamples
+end
 
 --------------------------------------------------
 -- Evaluate the efficency in discovering artifacts

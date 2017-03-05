@@ -1,28 +1,30 @@
 -------------------------------------------------------------------------------
--- Make predictions on unseen data given in .csv format.
+-- Make predictions on test set
+--
 -- @arg1 path to trained model to be used for predicting
 -- @arg2 path to .csv file
 -- @arg3 path to file to save predictions
 -------------------------------------------------------------------------------
+
 require 'cunn'
 require 'paths'
-require 'csvigo'
 local inout = require 'sslib.deepnet.lib.inout'
 local eval  = require 'sslib.deepnet.lib.eval'
 local util  = require 'sslib.deepnet.lib.util'
 
-model_path = arg[1]
-dataset_path = arg[2]
-output_path = arg[3]
+-- Command line argument parsing
+modelpath = arg[1]
+testsetpath = arg[2]
+outputpath = arg[3]
 
 print("## Load trained model")
-network = torch.load(model_path)
+model = torch.load(modelpath)
 
-print("## Load data set")
-dataset = inout.load_dataset(dataset_path, 3, 0)
+print("## Load test set")
+testset = inout.load_dataset(testsetpath, 3, 0)
 
 print("## Generate predictions")
-predictions = eval.predict(dataset, network)
+predictions = eval.predict(testset, model)
 
 print("## Write predictions into a file")
-torch.save(output_path, util.toCSV(predictions), 'ascii')
+torch.save(outputpath, util.toCSV(predictions), 'ascii')

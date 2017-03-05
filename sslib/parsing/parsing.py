@@ -146,7 +146,6 @@ class _ScoringParser(object):
         scorings = self.get_raw_scorings()
         mapped_scorings = \
         scorings.replace({"label": self._get_binary_mapping()})
-        print mapped_scorings["label"].value_counts(sort=False)/mapped_scorings["label"].size
         return np.array(mapped_scorings)
 
     def get_4stage_scorings(self):
@@ -156,7 +155,6 @@ class _ScoringParser(object):
         scorings = self.get_raw_scorings()
         mapped_scorings = \
         scorings.replace({"label": self._get_4stage_mapping()})
-        print mapped_scorings["label"].value_counts(sort=False)/mapped_scorings["label"].size
         return np.array(mapped_scorings)
 
 

@@ -1,14 +1,13 @@
 local M = {};
 
-
 ------------------------------------------------------------------
 -- Print out different parameters as a part of debugging procedure
 ------------------------------------------------------------------
-function M.outputParameters(network,optimization,experiment)
+function M.outputParameters(model, optimization)
 
 	print("## The network architecture:")
 	print("## -------------------------")
-	print(network:__tostring());
+	print(model:__tostring());
 	--print("## The network feature extractor:")
 	--print(network:get(1):__tostring());
 	print("## Optimization parameters:")
@@ -18,12 +17,6 @@ function M.outputParameters(network,optimization,experiment)
 	print("## number of iterations =  "..optimization.iterations)
 	print("## batch size           =  "..optimization.batchSize)
 	print("## weight decay         =  "..(optimization.weightDecay or 0))
-	print("## load pre-trained model? "..tostring(optimization.pretrained))
-	print("## Experiment parameters:")
-	print("## ----------------------")
-	print("## Experiment number   = "..experiment.number)
-	print("## Augmentation method = "..experiment.augType)
-	print("## number of channels  = "..experiment.numChan)
 	print("## ###############################")
 
 end
