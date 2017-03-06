@@ -14,12 +14,12 @@ NUM_CHAN   = 3
 function getOptimization()
         -- change parameters here
         local optimization = {}
-        optimization.learningRate      = 0.0001
-        optimization.learningRateDecay = 0
-        optimization.momentum          = 0
-        optimization.batchSize         = 1
-        optimization.iterations        = 3
-        optimization.classes           = {1,2,3}
+        optimization.learningRate = 0.001
+        optimization.momentum = 0.5
+	optimization.weightDecay = 0.001
+        optimization.batchSize = 1
+        optimization.iterations = 30
+        optimization.classes = {1,2,3}
         return optimization
 end
 
@@ -34,12 +34,12 @@ function getModel()
     CONV_L1_stride      = 1
 
     -- MP1
-    MP_L1_region = 4
-    MP_L1_stride = 4
+    MP_L1_region = 3
+    MP_L1_stride = 3
 
     -- Layer 2 (temporal convolution) parameters
     CONV_L2_featureMaps = 30
-    CONV_L2_kernel      = 33
+    CONV_L2_kernel      = 25
     CONV_L2_stride      = 1
 
     -- MP2
@@ -47,7 +47,7 @@ function getModel()
     MP_L2_stride = 2
 
     -- FC layers
-    denseNetwork = 500
+    denseNetwork = 300
 
     -- feature extractor
     convnet = nn.Sequential()
@@ -76,7 +76,7 @@ function getModel()
     -- full network architecture
     net = nn.Sequential()
             :add(convnet)
-	    :add(nn.Dropout(0.5))
+	    :add(nn.Dropout(0.6))
 	    :add(nn.Linear(CONV_L2_featureMaps*signal,denseNetwork))
 	    :add(nn.ReLU())                                
 	    :add(nn.Linear(denseNetwork,#getOptimization().classes))

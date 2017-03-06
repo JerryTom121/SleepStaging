@@ -180,11 +180,14 @@ if command == 'prepare':
     prepare()
 elif command == 'train':
     train(gpu)
-elif command == 'evaluate':
+elif command == 'predict':
+    # predict scorings for each file of the test folder
+    for recording in os.listdir(cfg.TESTSET.RECORDINGS):
+        predict(recording, gpu)
+elif command == 'validate':
     # predict and evalute scorings for each file of the test folder
     for recording in os.listdir(cfg.TESTSET.RECORDINGS):
         predict(recording, gpu)
         evaluate(recording)
 else:
-    print "Unknown command!"
-
+    print "Unknown Command!"

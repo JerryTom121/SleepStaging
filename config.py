@@ -4,7 +4,6 @@ Global configuration parameters.
 # Author: Djordje Miladinovic
 # License:
 
-
 # ---------------------------------------------------------------------------- #
 # ------------ User defined variables - to be set ---------------------------- #
 # ---------------------------------------------------------------------------- #
@@ -14,15 +13,17 @@ FORMAT = "UZH"
 # "ART" - artifact detection
 # "SS" - full sleep staging
 PROBLEM_TYPE = "SS"
+
 # ---------------------------------------------------------------------------- #
 # ------------ Model specification ------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 # The name of the corresponding neural network architecture
 ARCHITECTURE = "temporal_convolution"+"_"+FORMAT+"_"+PROBLEM_TYPE
+
 # ---------------------------------------------------------------------------- #
 # ------------ File paths - generally, not to be changed --------------------- #
 # ---------------------------------------------------------------------------- #
-# class
+# Auxilary class - representing the data set
 class DATASET(object):
     RECORDINGS = ""
     SCORINGS = ""
@@ -48,3 +49,4 @@ TESTSET.CSV = CSV_HOME+"testset.csv"
 MODELS_HOME = "./models/"
 MODELS_SCALER = MODELS_HOME+"scaler.pkl"
 MODELS_ARCHITECTURE = MODELS_HOME+ARCHITECTURE
+

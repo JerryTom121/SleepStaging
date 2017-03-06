@@ -13,10 +13,10 @@ function M.outputParameters(model, optimization)
 	print("## Optimization parameters:")
 	print("## ------------------------")
 	print("## learning rate        =  "..optimization.learningRate)
-	print("## learning rate decay  =  "..optimization.learningRateDecay)
 	print("## number of iterations =  "..optimization.iterations)
 	print("## batch size           =  "..optimization.batchSize)
 	print("## weight decay         =  "..(optimization.weightDecay or 0))
+	print("## momentum             =  "..(optimization.momentum or 0))
 	print("## ###############################")
 
 end

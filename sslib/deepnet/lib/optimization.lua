@@ -10,6 +10,7 @@ function MBGD:__init(optimization, model, dataset)
 	self.learningRate = optimization.learningRate
 	self.batchSize = optimization.batchSize or 1
 	self.weightDecay = optimization.weightDecay or 0
+	self.momentum = optimization.momentum or 0
 	self.classes = optimization.classes
 	-- model
 	self.model = model
@@ -30,10 +31,13 @@ function MBGD:train()
 	local model = self.model
 	local classes = self.classes
 	local dataset = self.dataset
-	local optimState = {
-		learningRate      = self.learningRate,
-		weightDecay       = self.weightDecay,
+	local optimConfig = {
+		learningRate = self.learningRate,
+		weightDecay = self.weightDecay,
+		momentum = self.momentum
 	}
+
+	print("## Learning rate is "..optimConfig.learningRate)
 
 	-- for now we allow batch size = 1 only: TO BE FIXED
 	assert(batchSize==1)
@@ -103,7 +107,7 @@ function MBGD:train()
 		end
 	        
 		-- Do optimization
-	        optim.sgd(feval, parameters, optimState)
+	        optim.sgd(feval, parameters, optimConfig)
       
 	 end -- end of "for each batch" loop
 
@@ -115,4 +119,8 @@ end
 
 function MBGD:getModel()
 	return self.model
+end
+
+function MBGD:setLearningRate(learningRate)
+	self.learningRate = learningRate
 end
