@@ -70,14 +70,16 @@ for iter = 1, optimization.iterations do
 	trainacc[iter] = eval.predict_and_evaluate(trainset, trainer:getModel())
 	holdoutacc[iter] = eval.predict_and_evaluate(holdout, trainer:getModel())
 	-- Report current error
-	print('==> Accuracy on training data = '..trainacc[iter]..'; Accuracy on holdout data = '..holdoutacc[iter])
+	print('## Accuracy on training data = '..trainacc[iter]..'; Accuracy on holdout data = '..holdoutacc[iter])
 	-- Save current model
 	trainedmodels[iter] = trainer:getModel():clone()
 	-- Decay learning rate
-	trainer:setLearningRate(optimization.learningRate/(1+2*iter))
+	trainer:setLearningRate(optimization.learningRate/(1+iter*optimization.learningRateDecay))
 end
 
 -- Save model which has highest accuracy on holdout data
 local val, ind = holdoutacc:topk(1, true)
 torch.save(trainedmodelpath..architecture..'_'..gpu, trainedmodels[ind[1]])
 debug.outputParameters(model, optimization)
+print(trainacc)
+print(holdoutacc)

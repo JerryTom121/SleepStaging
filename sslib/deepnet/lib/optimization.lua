@@ -61,9 +61,6 @@ function MBGD:train()
 	-- get model parameters
 	parameters,gradParameters = model:getParameters()
 	
-	-- intialize timer
-	local time = sys.clock()
-      
 	-- shuffle before creating mini-batches
 	-- Also remove shuffling when introducing recurrency !!!
 	local shuffle = torch.randperm(nsamples, 'torch.LongTensor')
@@ -110,10 +107,6 @@ function MBGD:train()
 	        optim.sgd(feval, parameters, optimConfig)
       
 	 end -- end of "for each batch" loop
-
-      -- time taken
-      time = sys.clock() - time
-      print ("==> time to learn 1 sample = "..(time/nsamples*100)..'ms')
 
 end
 
