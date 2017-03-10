@@ -122,6 +122,12 @@ def train(gpu):
               +cfg.TRAINSET.CSV+' '+cfg.HOLDOUT.CSV+' '+cfg.MODELS_HOME+' '\
               +cfg.ARCHITECTURE+' '+gpu)
 
+def train_simple():
+    """Shallow classification used for verification.
+    """
+    shtrain(cfg.TRAINSET.CSV)
+
+
 def predict(recording, gpu):
     """Make predictions on a given raw recording from the validation data set
     """
@@ -180,6 +186,8 @@ if command == 'prepare':
     prepare()
 elif command == 'train':
     train(gpu)
+elif command == 'train_simple':
+    train_simple()
 elif command == 'predict':
     # predict scorings for each file of the test folder
     for recording in os.listdir(cfg.TESTSET.RECORDINGS):

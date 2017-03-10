@@ -6,25 +6,26 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
 
 def train(train_csv):
+    print("Reading training data")
     train_mat = np.genfromtxt(train_csv, skip_header=0, dtype=str,delimiter=',')
     train_input = (train_mat[:,1:-1]).astype(float)
     train_output = (train_mat[:,-1]).astype(float)
+    #
+    train_input = train_input[train_output<4,:].astype(int)
+    train_output = train_output[train_output<4].astype(int)
+    # fit
     clf = LogisticRegression(class_weight='balanced')
+    print("asda")
     #clf = RandomForestClassifier(class_weight='balanced')
     clf.fit(train_input,train_output)
     truth = train_output
     preds = clf.predict(train_input)
-    cmat = metrics.confusion_matrix(truth, preds)
+    cmat = metrics.confusion_matrix(truth[truth<4], preds[truth<4])
+    print truth
     print "Shallow classification..."
-    print "----------------------------------------"
-    print "| EVAL: Artifact detection confusion matrix on training data:"
     print cmat
-    print "----------------------------------------"
-    print "| EVAL: Artifact detection evaluation on training data:"
-    print "| Accuracy: " + format(metrics.accuracy_score(truth, preds, '.2f'))
-    print "| Recall: " + format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[0, 1]), '.2f')
-    print "| Precision: "+ format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[1, 0]), '.2f')
-    print "----------------------------------------"
+    print "Accuracy = "
+    print metrics.accuracy_score(truth,preds)
     
 """
 # --------------------------------------------------------------------------- #
