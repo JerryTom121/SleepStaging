@@ -5,7 +5,7 @@
 -------------------------------------------------------------------------------
 
 -- CONSTANTS
-EPOCH_SIZE = 512
+EPOCH_SIZE = 512*3
 NUM_CHAN   = 3
 
 -------------------------------------------------------------------------------
@@ -14,12 +14,12 @@ NUM_CHAN   = 3
 function getOptimization()
         -- change parameters here
         local optimization = {}
-        optimization.learningRate = 0.001
-	optimization.learningRateDecay = 0.125
-        optimization.momentum = 0.6
+        optimization.learningRate = 0.0004
+	optimization.learningRateDecay = 0.04
+        optimization.momentum = 0.5
 	optimization.weightDecay = 0.001
         optimization.batchSize = 1
-        optimization.iterations = 30
+        optimization.iterations = 70
         optimization.classes = {1,2,3}
         return optimization
 end
