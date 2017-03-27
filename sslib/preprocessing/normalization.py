@@ -35,21 +35,15 @@ class _Normalizer(object):
         self.fit(features)
         return self.transform(features)
 
-class NormalizerTemporal(_Normalizer):
+class NormalizerZMUV(_Normalizer):
     """Normalize eeg1, eeg2, emg signals independently with sklearn robust
     scaling method. Each signal is occuppies one third of feature matrix.
     """
 
-    def __init__(self):
-        # eeg1 pars
-        self.eeg1_mean = 0
-        self.eeg1_std = 1
-        # eeg2 pars
-        self.eeg2_mean = 0
-        self.eeg2_std = 1
-        # eeg3 pars
-        self.emg_mean = 0
-        self.emg_std = 1
+    def __init__(self, num_channels):
+        self.means = np.zeros(num_channels)
+        self.stds = np.ones(num_channels)
+        self.num_channels = num_channels
 
 
     def fit(self, features):
@@ -60,16 +54,9 @@ class NormalizerTemporal(_Normalizer):
         ----------
             features: a matrix of features to be transformed.
         """
-        ncols = np.shape(features)[1]/3
-        # Get parameters for eeg1
-        self.eeg1_mean = np.mean(features[:, 0:ncols].flatten())
-        self.eeg1_std = np.std(features[:, 0:ncols].flatten())
-        # Get parameters for eeg2
-        self.eeg2_mean = np.mean(features[:, ncols:2*ncols].flatten())
-        self.eeg2_std = np.std(features[:, ncols:2*ncols].flatten())
-        # Get parameters for emg
-        self.emg_mean = np.mean(features[:, 2*ncols:3*ncols].flatten())
-        self.emg_std = np.std(features[:, 2*ncols:3*ncols].flatten())
+        for i in range(self.num_channels):
+            self.means[i] = np.mean(features[:, i*self.num_channels:(i+1)*self.num_channels].flatten())
+            self.stds[i] = np.std(features[:, i*self.num_channels:(i+1)*self.num_channels].flatten())
 
     def transform(self, features):
         """Transform each signal component based on previously calculated
@@ -79,17 +66,8 @@ class NormalizerTemporal(_Normalizer):
         ----------
             features: a matrix of features to be transformed.
         """
-
-        ncols = np.shape(features)[1]/3
-
-        features[:, 0:ncols] \
-        = (features[:, 0:ncols] - self.eeg1_mean)/self.eeg1_std
-
-        features[:, ncols:2*ncols] \
-        = (features[:, ncols:2*ncols] - self.eeg2_mean)/self.eeg2_std
-
-        features[:, 2*ncols:3*ncols] \
-        = (features[:, 2*ncols:3*ncols] - self.emg_mean)/self.emg_std
+        for i in range(self.num_channels):
+            features[:, i*self.num_channels:(i+1)*self.num_channels] = (features[:, i*self.num_channels:(i+1)*self.num_channels]-self.means[i])/self.stds[i]
 
         return features
 

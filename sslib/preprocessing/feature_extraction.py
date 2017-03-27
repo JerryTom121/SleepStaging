@@ -6,8 +6,9 @@ logics and from different file formats.
 # License:
 
 import numpy as np
+from scipy import signal
 from sslib.parsing import RecordingsParserUZH, RecordingsParserUSZ
-
+import matplotlib.pyplot as plt
 
 
 class _FeatureExtractor(object):
@@ -49,10 +50,26 @@ class _FeatureExtractor(object):
         emg = np.reshape(emg[0:length], (epochs, samples_per_epoch))
         return np.hstack((eeg1, eeg2, emg))
 
-    def _fourier_extractor(self):
+    def _fourier_extractor(self, eeg1, eeg2, emg, sample_rate):
         """Get raw fourier signal for each epoch.
         """
-        #NYI
+        samples_per_epoch = int(self.interval_size*sample_rate)
+        epochs = len(eeg1)/samples_per_epoch
+        length = samples_per_epoch*epochs
+        #
+        window = 128
+        a = np.zeros(len(eeg1)-window)
+        for i in range(len(eeg1)-window):
+            ft = np.abs(np.fft.rfft(eeg1[i:i+window])) ** 2
+            a[i] = np.argmax(ft)
+        # pad
+        a = np.pad(a, pad_width=window/2, mode='edge')
+        # reshape
+        a = np.reshape(a[0:length], (epochs, samples_per_epoch))
+        # return
+        return a
+
+
 
     def _energy_extractor(self, eeg1, eeg2, emg, sample_rate):
         """Get fourier spectral energy features for each epoch.

@@ -20,7 +20,7 @@ FeatureExtractor = prep.FeatureExtractorUZH
 ScoringParser = pars.ScoringParserUZH
 architecture = "temporal_convolution_UZH_"+cfg.PROBLEM
 signal_length = 512
-num_channels = 3
+num_channels = 4
 
 # ---------------------------------------------------------------------------- #
 # ----- Utility functions ---------------------------------------------------- #
@@ -41,18 +41,20 @@ def add_neighbors(features, num_neighbors):
 
 def generate_csv(datapath, scaler=None): 
     # TODO: make it more elegant-avoid 'if'
-    # TODO: enable simple configuration of feature selection method
     """Given the path to data, parse raw recordings and scorings, merge these
     and write into a .csv file.
     """
-    # Parse features from raw data files
+    # Acquire paths to recordings
     recordings = []
     for recording in os.listdir(datapath['recordings']):
         recordings.append(datapath['recordings']+recording)
-    features = FeatureExtractor(recordings).get_temporal_features()
+    # Extract features
+    t_features = FeatureExtractor(recordings).get_temporal_features() # 3 channels
+    f_features = FeatureExtractor(recordings).get_fourier_features() # 1 channel (so far)
+    features = np.hstack((t_features,f_features))
     # Normalize if scaler is given, otherwise make it
     if scaler==None:
-        scaler = prep.NormalizerTemporal()
+        scaler = prep.NormalizerZMUV(num_channels)
         features = scaler.fit_transform(features)
     else:
         features = scaler.transform(features)
@@ -67,7 +69,7 @@ def generate_csv(datapath, scaler=None):
     # Make sure #labels is equal to #features
     assert(np.shape(features)[0]==len(labels))
     # Add neighbors to capture the context
-    features = add_neighbors(features, num_neighbors)
+    features = add_neighbors(features, cfg.num_neighbors)
     # Concatenate features and labels, and save the data
     dataset = np.hstack((features,labels))
     np.savetxt(datapath['csv'], dataset, delimiter=",")
