@@ -1,6 +1,3 @@
-"""Main script which demonstrates the usage of sslib.
-   arg {'prepare','train','evaluate'} 
-"""
 # Author: Djordje Miladinovic
 # License:
 
@@ -15,187 +12,118 @@ import sslib.preprocessing as prep
 import sslib.parsing as pars
 from sslib.shallow import train as shtrain
 
-# ---------------------------------------------------------------------------- #
-# ----- Configure EEG/EMG recording, and scoring file format ----------------- #
-# ---------------------------------------------------------------------------- #
-if cfg.FORMAT == "UZH":
-    FeatureExtractor = prep.FeatureExtractorUZH
-    ScoringParser = pars.ScoringParserUZH
-    ext = '.STD'
-elif cfg.FORMAT == "USZ":
-    FeatureExtractor = prep.FeatureExtractorUSZ
-    ScoringParser = pars.ScoringParserUSZ
-    ext = '.txt'
-else:
-    print "Uknown encoding: " + cfg.FORMAT
-    exit()
-
+# --------------------------------------------------------------------------- #
+# -- UZH format specific initialization ------------------------------------- #
+# --------------------------------------------------------------------------- #
+# TODO: make configurable formatting
+FeatureExtractor = prep.FeatureExtractorUZH
+ScoringParser = pars.ScoringParserUZH
+architecture = "temporal_convolution_UZH_"+cfg.PROBLEM
+signal_length = 512
+num_channels = 3
 
 # ---------------------------------------------------------------------------- #
 # ----- Utility functions ---------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
-def generate_csv(datapath, scaler=None):
-    """Parse raw data from specified folder, scale it using a given scaler, and
-    finally save it in .csv format.
+def add_neighbors(features, num_neighbors):
+    # TODO: implement this more elegantly
+    """Extend feature matrix to surround each sample by num_neighbors/2 on front
+    and num_neighbors/2 on the back.
     """
+    for i in range(num_neighbors/2):
+        features_prev = np.roll(features, shift=i, axis=0)
+        features_subq = np.roll(features, shift=-i, axis=0)
+        # stack
+        features = np.hstack((features_prev[:, 0:signal_length], features[:, 0:signal_length], features_subq[:, 0:signal_length],\
+                              features_prev[:,   signal_length:2*signal_length], features[:,   signal_length:2*signal_length], features_subq[:,   signal_length:2*signal_length],\
+                              features_prev[:, 2*signal_length:3*signal_length], features[:, 2*signal_length:3*signal_length], features_subq[:, 2*signal_length:3*signal_length]))
+    return features
 
+def generate_csv(datapath, scaler=None): 
+    # TODO: make it more elegant-avoid 'if'
+    # TODO: enable simple configuration of feature selection method
+    """Given the path to data, parse raw recordings and scorings, merge these
+    and write into a .csv file.
+    """
     # Parse features from raw data files
     recordings = []
-    for recording in os.listdir(datapath.RECORDINGS):
-        recordings.append(datapath.RECORDINGS+recording)
+    for recording in os.listdir(datapath['recordings']):
+        recordings.append(datapath['recordings']+recording)
     features = FeatureExtractor(recordings).get_temporal_features()
-
     # Normalize if scaler is given, otherwise make it
     if scaler==None:
         scaler = prep.NormalizerTemporal()
         features = scaler.fit_transform(features)
     else:
         features = scaler.transform(features)
-    
     # Parse labels based on the task solved (artifact detection/sleep staging)
     scorings = []
-    for scoring in os.listdir(datapath.SCORINGS):
-        scorings.append(datapath.SCORINGS+scoring)
-    if cfg.PROBLEM_TYPE == "ART":
+    for scoring in os.listdir(datapath['scorings']):
+        scorings.append(datapath['scorings']+scoring)
+    if cfg.PROBLEM == "AD":
         labels = ScoringParser(scorings).get_binary_scorings()
-    elif cfg.PROBLEM_TYPE == "SS":
+    elif cfg.PROBLEM == "SS":
         labels = ScoringParser(scorings).get_4stage_scorings()
-
-    # Make sure we do not have more labels than features (just in case..)
-    features = features[0:len(labels),:]
-
+    # Make sure #labels is equal to #features
+    assert(np.shape(features)[0]==len(labels))
+    # Add neighbors to capture the context
+    features = add_neighbors(features, num_neighbors)
     # Concatenate features and labels, and save the data
     dataset = np.hstack((features,labels))
-    np.savetxt(datapath.CSV, dataset, delimiter=",")
+    np.savetxt(datapath['csv'], dataset, delimiter=",")
     print "# The shape of training data is: " + str(np.shape(dataset))
-
     # Return scaler
     return scaler
-
-
-def validate(truth, preds):
-    """
-    """
-
-    cmat = metrics.confusion_matrix(truth, preds)
-    print "----------------------------------------"
-    print "| EVAL: Confusion matrix:"
-    print cmat
-    print "----------------------------------------"
-    if cfg.PROBLEM_TYPE == "ART":
-        print "| EVAL: Artifact detection evaluation:"
-        print "| Accuracy: " + format(metrics.accuracy_score(truth[truth<3], preds[truth<3], '.2f'))
-        print "| Recall: " + format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[0, 1]), '.2f')
-        print "| Precision: "+ format(cmat[0, 0]*1.0/(cmat[0, 0]+cmat[1, 0]), '.2f')
-        print "----------------------------------------"
-    elif cfg.PROBLEM_TYPE == "SS":
-        print "| EVAL: Sleep staging:"
-        print "| Accuracy: " + format(metrics.accuracy_score(truth[truth<4], preds[truth<4], '.2f'))
-        print "----------------------------------------"
 
 # ---------------------------------------------------------------------------- #
 # ----- Main functions ------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 def prepare():
-    """Parse raw data of training and holdout data sets, and save them in .csv
-    format
-    """
-    
-    # Clean CSV directory
-    for file_ in os.listdir(cfg.CSV_HOME):
-        os.remove(cfg.CSV_HOME+file_)
-
-    # Generate training data set
+    """ Given raw recordings and scorings file generate 3 different data sets in
+    .csv format: training set, holdout set and testing set.
+    """    
+    print "## Generate training data set:"
     scaler = generate_csv(cfg.TRAINSET)
-    joblib.dump(scaler, cfg.MODELS_SCALER)
-
-    # Generate holdout data set
+    print "## Generate holdout data set:"
     generate_csv(cfg.HOLDOUT, scaler)
+    print "## Generate test data set:"
+    generate_csv(cfg.TESTSET, scaler)
+
 
 def train(gpu):
-    """Train model on the specified GPU machine, and using previously prepared
-    training and holdout data sets
+    """Train model on specified GPU using previously prepared training and holdout
+    data sets. Essentially we call corresponding .lua script in torch framework 
+    and we use previously configured training parameters ('config.py' file).
     """
-
-    # Call torch to train the model
-    os.system('CUDA_VISIBLE_DEVICES='+gpu+' '+'th sslib/deepnet/train.lua '\
-              +cfg.TRAINSET.CSV+' '+cfg.HOLDOUT.CSV+' '+cfg.MODELS_HOME+' '\
-              +cfg.ARCHITECTURE+' '+gpu)
-
-def train_simple():
-    """Shallow classification used for verification.
-    """
-    shtrain(cfg.TRAINSET.CSV)
-
-
-def predict(recording, gpu):
-    """Make predictions on a given raw recording from the validation data set
-    """
-
-    # Extract features
-    features = FeatureExtractor(cfg.TESTSET.RECORDINGS+recording)\
-               .get_temporal_features()
-
-    # Scale features
-    scaler = joblib.load(cfg.MODELS_SCALER)
-    features = scaler.transform(features)
-
-    # Temporarily save features in a feature file
-    np.savetxt(cfg.CSV_HOME+recording+"_fts.csv", features, delimiter=",")
-
-    # Make predictions on the feature file
-    os.system('CUDA_VISIBLE_DEVICES='+gpu+' '+'th sslib/deepnet/predict.lua '\
-              +cfg.MODELS_ARCHITECTURE+'_'+gpu+' '\
-              +cfg.CSV_HOME+recording+'_fts.csv '\
-              +cfg.CSV_HOME+recording.split('.')[0]+'_preds.csv')
-    
-    # Remove feature file
-    os.remove(cfg.CSV_HOME+recording+"_fts.csv")
-
-def evaluate(recording):
-    """Evaluate prediction
-    """
-
-    # Read previously generated predictions
-    preds = np.genfromtxt(cfg.CSV_HOME+recording.split('.')[0]+"_preds.csv",\
-                          skip_header=2, delimiter=',', dtype=int)
-
-    # Read corresponding labels based on the problem solved
-    sparser = ScoringParser(cfg.TESTSET.SCORINGS+recording.split('.')[0]+ext)
-    if cfg.PROBLEM_TYPE == "ART":
-        truth = sparser.get_binary_scorings().flatten()
-    elif cfg.PROBLEM_TYPE == "SS":
-        truth = sparser.get_4stage_scorings().flatten()
-
-    # Make sure we have number of predictions equal to number of labels
-    preds = preds[0:len(truth)]
-
-    # Output validation results
-    validate(truth, preds)
+    os.system('CUDA_VISIBLE_DEVICES='+gpu+' '+'th sslib/deepnet/train.lua'\
+              +' -learningRate '+str(cfg.learning_rate)\
+              +' -learningRateDecay '+str(cfg.learning_rate_decay)\
+              +' -momentum '+str(cfg.momentum)\
+              +' -weightDecay '+str(cfg.weight_decay)\
+              +' -batchSize '+str(cfg.batch_size)\
+              +' -maxEpochs '+str(cfg.max_epochs)\
+              +' -nclasses '+str(cfg.num_classes)\
+              +' -trainPath '+cfg.TRAINSET['csv']\
+              +' -holdoutPath '+cfg.HOLDOUT['csv']\
+              +' -architecture '+architecture\
+              +' -gpu '+gpu\
+              +' -inputSize '+str(signal_length*(1+cfg.num_neighbors))\
+              +' -numChannels '+str(num_channels))
 
 # ---------------------------------------------------------------------------- #
 # - Parse command to process data, train a model or evaluate already trained - #
 # ---------------------------------------------------------------------------- #
-command = sys.argv[1]
+# -- parse number of gpu if specified
 if len(sys.argv)>2:
     gpu = sys.argv[2]
 else:
     gpu = "0"
 
+# -- parse command
+command = sys.argv[1]
 if command == 'prepare':
     prepare()
 elif command == 'train':
     train(gpu)
-elif command == 'train_simple':
-    train_simple()
-elif command == 'predict':
-    # predict scorings for each file of the test folder
-    for recording in os.listdir(cfg.TESTSET.RECORDINGS):
-        predict(recording, gpu)
-elif command == 'validate':
-    # predict and evalute scorings for each file of the test folder
-    for recording in os.listdir(cfg.TESTSET.RECORDINGS):
-        predict(recording, gpu)
-        evaluate(recording)
 else:
     print "Unknown Command!"

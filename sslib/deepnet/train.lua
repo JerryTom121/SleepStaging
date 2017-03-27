@@ -1,18 +1,14 @@
 ------------------------------------------------------------------------------
--- This script loads specified architecture of NN model and the optimization 
--- procedure parameters, and does the training of the model on the specified 
--- training data set. In each iteration, the model is evaluated on the holdout
--- data set, which is used to decide at which point in the training process our
--- model is the most accurate. To enable parallel training of several models, 
--- in the name of each model, a number of gpu device will be contained.
---
--- @arg1 str path to training data given in .csv format
--- @arg2 str path to holdout data given in .csv format
--- @arg3 str path to where we save final trained model
--- @arg4 str name of the neural network architecture
--- @arg5 str number of gpu on which we train
+-- The script first loads specified architecture of NN and then does the 
+-- training of the model on specified training data set. In each epoch, the
+-- model is evaluated on the holdout data set, which is used to decide when to 
+-- stop the training process (early stopping procedure). To enable parallel 
+-- training of several models on different GPUs in the name of each model a 
+-- number of GPU device will be contained. Necessary parameters are passed
+-- through command line.
 -------------------------------------------------------------------------------
 
+require 'torch'
 require 'nn'
 require 'cunn'
 require 'paths'
@@ -23,63 +19,62 @@ local debug = require 'sslib.deepnet.lib.debug'
 local eval  = require 'sslib.deepnet.lib.eval'
 local util  = require 'sslib.deepnet.lib.util'
 
--- Read command line arguments
-local trainsetpath = arg[1]
-local holdoutpath = arg[2]
-local trainedmodelpath = arg[3]
-local architecture = arg[4]
-local gpu = arg[5]
+-- Read and parse command line arguments
+cmd = torch.CmdLine()
+cmd:text()
+cmd:text('Training starts..')
+cmd:text()
+cmd:text('Options')
+cmd:option('-learningRate', 0.0005, 'Learning rate')
+cmd:option('-learningRateDecay', 0.01, 'Learning rate decay')
+cmd:option('-momentum', 0.5, 'Nesterov momentum for SGD')
+cmd:option('-weightDecay', 0.001, 'Weight decay regularization')
+cmd:option('-batchSize', 1, 'The size of a mini-batch')
+cmd:option('-maxEpochs', 70, 'Max number of epochs/iterations')
+cmd:option('-nclasses', 3, 'Number of classes depends on the problem solved')
+cmd:option('-trainPath', '', 'Path to training data')
+cmd:option('-holdoutPath', '', 'Path to holdout data')
+cmd:option('-architecture', '', 'The name of the NN architecture to be loaded')
+cmd:option('-gpu', 0, 'The number of gpu to run on')
+cmd:option('-inputSize', 3*512, 'The length of the input signal')
+cmd:option('-numChannels', 3, 'The number of input channels')
+cmd:text()
+params = cmd:parse(arg)
+cmd:log('logs/gpu' .. params.gpu, params) -- make sure to log events
 
--- Fetch architecture and optimization parameters of the model
-paths.dofile('architecture/' .. architecture .. '.lua')
-local model = getModel()
-local optimization = getOptimization()
-debug.outputParameters(model, optimization)
+-- Load and output model architecture
+print("## NN architecture:")
+paths.dofile('architecture/'..params.architecture..'.lua')
+print(model)
 
 -- Fetch training data set
 print("## Loading training data...")
-local trainset = inout.load_dataset(trainsetpath, 3, 1)
-
--- Temporary solution to speed up learning 
--- to be used only before recurrency is introduced!!!
--- we remove all rows which contain label '4'-artifact
--- and an ambigious scorings - '5'
-selected = trainset.label:lt(4):nonzero()[{{}, 1}]
-trainset.data = trainset.data:index(1, selected)
-trainset.label = trainset.label:index(1, selected)
+local trainset = inout.load_dataset(params.trainPath, params.numChannels, 1)
 
 -- Fetch holdout data set
 print("## Loading holdout data...")
-holdout = inout.load_dataset(holdoutpath, 3, 1)
+local holdout = inout.load_dataset(params.holdoutPath, params.numChannels, 1)
 
 -- Further initialization
 local trainedmodels = {}
-local trainacc = torch.Tensor(optimization.iterations)
-local holdoutacc = torch.Tensor(optimization.iterations)
-
--- Initialize trainer
-trainer = nn.MBGD(optimization, model, trainset)
+local trainacc = torch.Tensor(params.maxEpochs)
+local holdoutacc = torch.Tensor(params.maxEpochs)
+local trainer = nn.MBGD(params, model, trainset)
 
 -- Perform training
-for iter = 1, optimization.iterations do
-	-- Do iteration
-	print("\n## Iteration #"..iter)
+for epoch = 1, params.maxEpochs do
+	print("\n## Epoch #"..epoch)
 	trainer:train()
-	-- Evaluate current model on holdout data
-	print("## Evaluating current model on holdout data...")
-	trainacc[iter] = eval.predict_and_evaluate(trainset, trainer:getModel())
-	holdoutacc[iter] = eval.predict_and_evaluate(holdout, trainer:getModel())
-	-- Report current error
-	print('## Accuracy on training data = '..trainacc[iter]..'; Accuracy on holdout data = '..holdoutacc[iter])
-	-- Save current model
-	trainedmodels[iter] = trainer:getModel():clone()
-	-- Decay learning rate
-	trainer:setLearningRate(optimization.learningRate/(1+iter*optimization.learningRateDecay))
+	print("## Evaluating current model on training and holdout data...")
+	trainacc[epoch] = eval.predict_and_evaluate(trainset, trainer:getModel())
+	holdoutacc[epoch] = eval.predict_and_evaluate(holdout, trainer:getModel())
+	print('## Accuracy on training data = '..trainacc[epoch]) 
+	print('## Accuracy on holdout data = '..holdoutacc[epoch])
+	trainedmodels[epoch] = trainer:getModel():clone()
+	-- decrease learning rate
+	trainer:setLearningRate(params.learningRate/(1+epoch*params.learningRateDecay))
 end
 
 -- Save model which has highest accuracy on holdout data
 local val, ind = holdoutacc:topk(1, true)
-torch.save(trainedmodelpath..architecture..'_'..gpu, trainedmodels[ind[1]])
-debug.outputParameters(model, optimization)
-print(trainacc)
-print(holdoutacc)
+torch.save('models/'..params.architecture..'_'..params.gpu, trainedmodels[ind[1]])

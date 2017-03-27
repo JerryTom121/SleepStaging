@@ -5,19 +5,19 @@ local util = require 'sslib.deepnet.lib.util'
 
 local MBGD = torch.class('nn.MBGD')
 
-function MBGD:__init(optimization, model, dataset)
+function MBGD:__init(params, model, dataset)
 	-- optimization pars
-	self.learningRate = optimization.learningRate
-	self.batchSize = optimization.batchSize or 1
-	self.weightDecay = optimization.weightDecay or 0
-	self.momentum = optimization.momentum or 0
-	self.classes = optimization.classes
+	self.learningRate = params.learningRate or 0.001
+	self.batchSize = params.batchSize or 1
+	self.weightDecay = params.weightDecay or 0
+	self.momentum = params.momentum or 0
+	self.nclasses = params.nclasses
 	-- model
 	self.model = model
 	-- data
 	self.dataset = dataset
 	-- criterion (class-balanced)
-	class_weights = util.get_class_weights(self.dataset, self.classes)
+	class_weights = util.get_class_weights(self.dataset, self.nclasses)
 	self.criterion = nn.ClassNLLCriterion(class_weights)
 end
 
@@ -29,7 +29,7 @@ function MBGD:train()
 	local criterion = self.criterion
 	local batchSize = self.batchSize
 	local model = self.model
-	local classes = self.classes
+	local nclasses = self.nclasses
 	local dataset = self.dataset
 	local optimConfig = {
 		learningRate = self.learningRate,
@@ -77,8 +77,11 @@ function MBGD:train()
 	        for i = t,math.min(t+batchSize-1, nsamples) do
 	        	local input  = dataset.data[shuffle[i]]
 			local target = dataset.label[shuffle[i]]
-		        table.insert(inputs, input)
-		        table.insert(targets, target)
+			-- Should we skip this sample??
+			if target[1]<=nclasses then
+			        table.insert(inputs, input)
+			        table.insert(targets, target)
+			end
 	        end
 
 		-- closure function for optimization
@@ -103,8 +106,10 @@ function MBGD:train()
 			return f, gradParameters
 		end
 	        
-		-- Do optimization
-	        optim.sgd(feval, parameters, optimConfig)
+		-- Do optimization if the batch is non-empty
+		if #inputs>0 then
+		        optim.sgd(feval, parameters, optimConfig)
+		end
       
 	 end -- end of "for each batch" loop
 
