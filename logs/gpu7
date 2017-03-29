@@ -1,0 +1,89 @@
+[program started on Wed Mar 29 00:15:17 2017] 
+[command line arguments] 
+gpu 7 
+trainPath ./data/CSV/trainset.csv 
+inputSize 2560 
+learningRate 0.0003 
+holdoutPath ./data/CSV/holdout.csv 
+momentum 0.5 
+numChannels 3 
+maxEpochs 50 
+learningRateDecay 0.1 
+nclasses 3 
+dropout 0.6 
+weightDecay 0.002 
+architecture temporal_convolution_UZH_SS 
+batchSize 1 
+[----------------------] 
+## NN architecture: 
+2560 
+2496 
+1248 
+1224 
+612 
+nn.Sequential {
+  [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> (8) -> (9) -> output]
+  (1): nn.Sequential {
+    [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> output]
+    (1): nn.TemporalConvolution
+    (2): nn.ReLU
+    (3): nn.TemporalMaxPooling
+    (4): nn.TemporalConvolution
+    (5): nn.ReLU
+    (6): nn.TemporalMaxPooling
+    (7): nn.View(12240)
+  }
+  (2): nn.Dropout(0.600000)
+  (3): nn.Linear(12240 -> 500)
+  (4): nn.ReLU
+  (5): nn.Dropout(0.600000)
+  (6): nn.Linear(500 -> 500)
+  (7): nn.ReLU
+  (8): nn.Linear(500 -> 3)
+  (9): nn.LogSoftMax
+} 
+## Loading training data... 
+## Data loaded from .csv file 
+## Data reshaped and made compatible for CUDA 
+## Loading holdout data... 
+## Data loaded from .csv file 
+## Data reshaped and made compatible for CUDA 
+
+## Epoch #1 
+## Learning rate is 0.0003 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.97399082828512 
+## Accuracy on holdout data = 0.90868098256236 
+
+## Epoch #2 
+## Learning rate is 0.00027272727272727 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.97931268753892 
+## Accuracy on holdout data = 0.91766783338063 
+
+## Epoch #3 
+## Learning rate is 0.00025 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98268697276793 
+## Accuracy on holdout data = 0.92400592816826 
+
+## Epoch #4 
+## Learning rate is 0.00023076923076923 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.97290381022476 
+## Accuracy on holdout data = 0.90395106107905 
+
+## Epoch #5 
+## Learning rate is 0.00021428571428571 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98062616769518 
+## Accuracy on holdout data = 0.90171223157696 
+
+## Epoch #6 
+## Learning rate is 0.0002 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.96709505746476 
+## Accuracy on holdout data = 0.89613092422666 
+
+## Epoch #7 
+## Learning rate is 0.0001875 

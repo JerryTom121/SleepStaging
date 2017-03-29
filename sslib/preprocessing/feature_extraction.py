@@ -53,21 +53,34 @@ class _FeatureExtractor(object):
     def _fourier_extractor(self, eeg1, eeg2, emg, sample_rate):
         """Get raw fourier signal for each epoch.
         """
+        window = 128
+        iters = len(eeg1)-window
         samples_per_epoch = int(self.interval_size*sample_rate)
         epochs = len(eeg1)/samples_per_epoch
-        length = samples_per_epoch*epochs
-        #
-        window = 128
-        a = np.zeros(len(eeg1)-window)
-        for i in range(len(eeg1)-window):
+        # Sliding window
+        eeg1_maxf = np.zeros(iters)
+        eeg2_maxf = np.zeros(iters)
+        emg_maxf = np.zeros(iters)
+        for i in range(iters):
+            # eeg1
             ft = np.abs(np.fft.rfft(eeg1[i:i+window])) ** 2
-            a[i] = np.argmax(ft)
-        # pad
-        a = np.pad(a, pad_width=window/2, mode='edge')
-        # reshape
-        a = np.reshape(a[0:length], (epochs, samples_per_epoch))
+            eeg1_maxf[i] = np.argmax(ft)
+            # eeg2
+            ft = np.abs(np.fft.rfft(eeg2[i:i+window])) ** 2
+            eeg2_maxf[i] = np.argmax(ft)
+            # emg
+            ft = np.abs(np.fft.rfft(emg[i:i+window])) ** 2
+            emg_maxf[i] = np.argmax(ft)
+        # padding
+        eeg1_maxf = np.pad(eeg1_maxf, pad_width=window/2, mode='edge')
+        eeg2_maxf = np.pad(eeg2_maxf, pad_width=window/2, mode='edge')
+        emg_maxf = np.pad(emg_maxf, pad_width=window/2, mode='edge')
+        # reshaping
+        eeg1_maxf = np.reshape(eeg1_maxf, (epochs, samples_per_epoch))
+        eeg2_maxf = np.reshape(eeg2_maxf, (epochs, samples_per_epoch))
+        emg_maxf = np.reshape(emg_maxf, (epochs, samples_per_epoch))
         # return
-        return a
+        return np.hstack((eeg1_maxf, eeg2_maxf, emg_maxf))
 
 
 

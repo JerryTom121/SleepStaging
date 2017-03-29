@@ -20,7 +20,7 @@ FeatureExtractor = prep.FeatureExtractorUZH
 ScoringParser = pars.ScoringParserUZH
 architecture = "temporal_convolution_UZH_"+cfg.PROBLEM
 signal_length = 512
-num_channels = 4
+num_channels = 3
 
 # ---------------------------------------------------------------------------- #
 # ----- Utility functions ---------------------------------------------------- #
@@ -30,14 +30,18 @@ def add_neighbors(features, num_neighbors):
     """Extend feature matrix to surround each sample by num_neighbors/2 on front
     and num_neighbors/2 on the back.
     """
-    for i in range(num_neighbors/2):
-        features_prev = np.roll(features, shift=i, axis=0)
-        features_subq = np.roll(features, shift=-i, axis=0)
-        # stack
-        features = np.hstack((features_prev[:, 0:signal_length], features[:, 0:signal_length], features_subq[:, 0:signal_length],\
-                              features_prev[:,   signal_length:2*signal_length], features[:,   signal_length:2*signal_length], features_subq[:,   signal_length:2*signal_length],\
-                              features_prev[:, 2*signal_length:3*signal_length], features[:, 2*signal_length:3*signal_length], features_subq[:, 2*signal_length:3*signal_length]))
-    return features
+    # initialize feature matrix
+    M = np.array([])
+    for c in range(num_channels):
+        A = features[:, c*signal_length:(c+1)*signal_length]
+        T = A.copy()
+        for n in range(num_neighbors/2):
+            prev = np.roll(A, shift=(n+1), axis=0)
+            subq = np.roll(A, shift=-(n+1), axis=0)
+            T = np.hstack((prev, T, subq))
+        M = np.hstack((M, T)) if M.size else T
+    # return newly constructed feature matrix
+    return M
 
 def generate_csv(datapath, scaler=None): 
     # TODO: make it more elegant-avoid 'if'
@@ -50,18 +54,21 @@ def generate_csv(datapath, scaler=None):
         recordings.append(datapath['recordings']+recording)
     # Extract features
     t_features = FeatureExtractor(recordings).get_temporal_features() # 3 channels
-    f_features = FeatureExtractor(recordings).get_fourier_features() # 1 channel (so far)
-    features = np.hstack((t_features,f_features))
+    #f_features = FeatureExtractor(recordings).get_fourier_features() # 3 channels (so far)
+    #features = np.hstack((t_features,f_features))
+    features = t_features
+    assert(np.shape(features)[1]==signal_length*num_channels)
     # Normalize if scaler is given, otherwise make it
     if scaler==None:
         scaler = prep.NormalizerZMUV(num_channels)
         features = scaler.fit_transform(features)
     else:
         features = scaler.transform(features)
-    # Parse labels based on the task solved (artifact detection/sleep staging)
+    # Acquire paths to scorings
     scorings = []
     for scoring in os.listdir(datapath['scorings']):
         scorings.append(datapath['scorings']+scoring)
+    # Get labels based on the problem we are solving
     if cfg.PROBLEM == "AD":
         labels = ScoringParser(scorings).get_binary_scorings()
     elif cfg.PROBLEM == "SS":
@@ -73,7 +80,7 @@ def generate_csv(datapath, scaler=None):
     # Concatenate features and labels, and save the data
     dataset = np.hstack((features,labels))
     np.savetxt(datapath['csv'], dataset, delimiter=",")
-    print "# The shape of training data is: " + str(np.shape(dataset))
+    print "# The shape of data is: " + str(np.shape(dataset))
     # Return scaler
     return scaler
 
@@ -102,6 +109,7 @@ def train(gpu):
               +' -learningRateDecay '+str(cfg.learning_rate_decay)\
               +' -momentum '+str(cfg.momentum)\
               +' -weightDecay '+str(cfg.weight_decay)\
+              +' -dropout '+str(cfg.dropout)\
               +' -batchSize '+str(cfg.batch_size)\
               +' -maxEpochs '+str(cfg.max_epochs)\
               +' -nclasses '+str(cfg.num_classes)\
@@ -115,14 +123,8 @@ def train(gpu):
 # ---------------------------------------------------------------------------- #
 # - Parse command to process data, train a model or evaluate already trained - #
 # ---------------------------------------------------------------------------- #
-# -- parse number of gpu if specified
-if len(sys.argv)>2:
-    gpu = sys.argv[2]
-else:
-    gpu = "0"
-
-# -- parse command
 command = sys.argv[1]
+gpu = sys.argv[2] if len(sys.argv)>2 else "0"
 if command == 'prepare':
     prepare()
 elif command == 'train':

@@ -1,0 +1,45 @@
+[program started on Tue Mar 28 23:15:46 2017] 
+[command line arguments] 
+gpu 6 
+trainPath ./data/CSV/trainset.csv 
+inputSize 1536 
+learningRate 0.0003 
+holdoutPath ./data/CSV/holdout.csv 
+momentum 0.5 
+numChannels 3 
+maxEpochs 50 
+learningRateDecay 0.1 
+nclasses 3 
+dropout 0.6 
+weightDecay 0.002 
+architecture temporal_convolution_UZH_SS 
+batchSize 1 
+[----------------------] 
+## NN architecture: 
+1536 
+1472 
+736 
+712 
+356 
+nn.Sequential {
+  [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> (8) -> (9) -> output]
+  (1): nn.Sequential {
+    [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> output]
+    (1): nn.TemporalConvolution
+    (2): nn.ReLU
+    (3): nn.TemporalMaxPooling
+    (4): nn.TemporalConvolution
+    (5): nn.ReLU
+    (6): nn.TemporalMaxPooling
+    (7): nn.View(7120)
+  }
+  (2): nn.Dropout(0.600000)
+  (3): nn.Linear(7120 -> 500)
+  (4): nn.ReLU
+  (5): nn.Dropout(0.600000)
+  (6): nn.Linear(500 -> 500)
+  (7): nn.ReLU
+  (8): nn.Linear(500 -> 3)
+  (9): nn.LogSoftMax
+} 
+## Loading training data... 
