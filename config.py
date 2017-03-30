@@ -11,14 +11,14 @@ PROBLEM = "SS"
 # Number of classes
 num_classes = 3 if PROBLEM == 'SS' else 2
 # Optimization parameters
-learning_rate = 0.0003
-learning_rate_decay = 0.1
+learning_rate = 0.0005
+learning_rate_decay = 0.3
 momentum = 0.5
-dropout = 0.6
-weight_decay = 0.002
-batch_size = 1
+dropout = 0.5
+weight_decay = 0.001
+batch_size = 75
 max_epochs = 50
-num_neighbors = 4 # should be even number (bi-directional)
+num_neighbors = 0 # should be even number (bi-directional)
 
 # ---------------------------------------------------------------------------- #
 # -- File paths to data sets: generally, there is no need to change this ----- #

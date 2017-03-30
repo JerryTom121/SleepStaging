@@ -39,9 +39,6 @@ function MBGD:train()
 
 	print("## Learning rate is "..optimConfig.learningRate)
 
-	-- for now we allow batch size = 1 only: TO BE FIXED
-	assert(batchSize==1)
-
 	-- long story... read on torch website
 	criterion.sizeAverage = false
    
@@ -71,7 +68,7 @@ function MBGD:train()
 		-- display progress
 	        xlua.progress(t, nsamples)
 
-		-- Create mini batch
+		-- create mini batch
 		local inputs  = {}
 	        local targets = {}
 	        for i = t,math.min(t+batchSize-1, nsamples) do
@@ -95,7 +92,6 @@ function MBGD:train()
 			-- f is the average of all criterions
 			local f = 0
 			for i = 1, #inputs do
-				-- process current sample of the batch
 				f = f + criterion:forward(model:forward(inputs[i]), targets[i][1])
 				model:backward(inputs[i], criterion:backward(model.output, targets[i][1]))
 			end
@@ -106,9 +102,9 @@ function MBGD:train()
 			return f, gradParameters
 		end
 	        
-		-- Do optimization if the batch is non-empty
+		-- do optimization if the batch is non-empty
 		if #inputs>0 then
-		        optim.sgd(feval, parameters, optimConfig)
+		        optim.adam(feval, parameters, optimConfig)
 		end
       
 	 end -- end of "for each batch" loop

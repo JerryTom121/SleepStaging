@@ -1,26 +1,26 @@
-[program started on Tue Mar 28 23:15:46 2017] 
+[program started on Thu Mar 30 12:13:24 2017] 
 [command line arguments] 
 gpu 6 
 trainPath ./data/CSV/trainset.csv 
-inputSize 1536 
-learningRate 0.0003 
+inputSize 512 
+learningRate 0.0001 
 holdoutPath ./data/CSV/holdout.csv 
 momentum 0.5 
 numChannels 3 
 maxEpochs 50 
-learningRateDecay 0.1 
+learningRateDecay 0 
 nclasses 3 
-dropout 0.6 
-weightDecay 0.002 
+dropout 0.5 
+weightDecay 0.001 
 architecture temporal_convolution_UZH_SS 
-batchSize 1 
+batchSize 75 
 [----------------------] 
 ## NN architecture: 
-1536 
-1472 
-736 
-712 
-356 
+512 
+448 
+224 
+200 
+100 
 nn.Sequential {
   [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> (8) -> (9) -> output]
   (1): nn.Sequential {
@@ -31,15 +31,41 @@ nn.Sequential {
     (4): nn.TemporalConvolution
     (5): nn.ReLU
     (6): nn.TemporalMaxPooling
-    (7): nn.View(7120)
+    (7): nn.View(2000)
   }
-  (2): nn.Dropout(0.600000)
-  (3): nn.Linear(7120 -> 500)
+  (2): nn.Dropout(0.500000)
+  (3): nn.Linear(2000 -> 500)
   (4): nn.ReLU
-  (5): nn.Dropout(0.600000)
+  (5): nn.Dropout(0.500000)
   (6): nn.Linear(500 -> 500)
   (7): nn.ReLU
   (8): nn.Linear(500 -> 3)
   (9): nn.LogSoftMax
 } 
 ## Loading training data... 
+## Data loaded from .csv file 
+## Data reshaped and made compatible for CUDA 
+## Loading holdout data... 
+## Data loaded from .csv file 
+## Data reshaped and made compatible for CUDA 
+
+## Epoch #1 
+## Learning rate is 0.0001 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.95817245088603 
+## Accuracy on holdout data = 0.86718380474884 
+
+## Epoch #2 
+## Learning rate is 0.0001 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.96680065674008 
+## Accuracy on holdout data = 0.88805852489515 
+
+## Epoch #3 
+## Learning rate is 0.0001 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.95862537507785 
+## Accuracy on holdout data = 0.89215779018068 
+
+## Epoch #4 
+## Learning rate is 0.0001 
