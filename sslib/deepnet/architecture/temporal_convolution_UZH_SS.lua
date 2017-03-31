@@ -29,7 +29,8 @@ signal = params.inputSize; print(signal)
 
 -- Add Layer 1:
 convnet:add(nn.TemporalConvolution(params.numChannels,CONV_L1_featureMaps,CONV_L1_kernel,CONV_L1_stride))
-convnet:add(nn.ReLU())
+       --:add(nn.BatchNormalization(CONV_L1_featureMaps))
+       :add(nn.ReLU())
 signal  = (signal-CONV_L1_kernel)/CONV_L1_stride + 1; print(signal)
 
 -- Add Max pooling layer
@@ -38,7 +39,8 @@ signal =  (signal-MP_L1_region)/MP_L1_stride+1; print(signal)
 
 -- Add Layer 2
 convnet:add(nn.TemporalConvolution(CONV_L1_featureMaps,CONV_L2_featureMaps,CONV_L2_kernel,CONV_L2_stride))
-convnet:add(nn.ReLU())
+       --:add(nn.BatchNormalization(CONV_L2_featureMaps))
+       :add(nn.ReLU())
 signal  = (signal-CONV_L2_kernel)/CONV_L2_stride + 1; print(signal)
 
 -- Add Max pooling layer
@@ -53,9 +55,11 @@ model = nn.Sequential()
           :add(convnet)
 	  :add(nn.Dropout(params.dropout))
 	  :add(nn.Linear(CONV_L2_featureMaps*signal,denseNetwork))
+	  --:add(nn.BatchNormalization(denseNetwork))
 	  :add(nn.ReLU())
 	  :add(nn.Dropout(params.dropout))
           :add(nn.Linear(denseNetwork,denseNetwork))
+	  --:add(nn.BatchNormalization(denseNetwork))
           :add(nn.ReLU())
 	  :add(nn.Linear(denseNetwork,params.nclasses))
 	  :add(nn.LogSoftMax())

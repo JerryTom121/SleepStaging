@@ -1,9 +1,9 @@
-[program started on Thu Mar 30 09:17:23 2017] 
+[program started on Fri Mar 31 12:27:26 2017] 
 [command line arguments] 
 gpu 1 
 trainPath ./data/CSV/trainset.csv 
 inputSize 512 
-learningRate 0.001 
+learningRate 0.0001 
 holdoutPath ./data/CSV/holdout.csv 
 momentum 0.5 
 numChannels 3 
@@ -13,7 +13,7 @@ nclasses 3
 dropout 0.5 
 weightDecay 0.001 
 architecture temporal_convolution_UZH_SS 
-batchSize 75 
+batchSize 50 
 [----------------------] 
 ## NN architecture: 
 512 
@@ -50,76 +50,179 @@ nn.Sequential {
 ## Data reshaped and made compatible for CUDA 
 
 ## Epoch #1 
-## Learning rate is 0.001 
+## Learning rate is 0.0001 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.58691049085659 
-## Accuracy on holdout data = 0.57392867278403 
+## Accuracy on training data = 0.95612296891808 
+## Accuracy on holdout data = 0.87919780531643 
 
 ## Epoch #2 
-## Learning rate is 0.00090909090909091 
+## Learning rate is 9.0909090909091e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.66945592481458 
-## Accuracy on holdout data = 0.61675022861287 
+## Accuracy on training data = 0.96952952499575 
+## Accuracy on holdout data = 0.89761296629143 
 
 ## Epoch #3 
-## Learning rate is 0.00083333333333333 
+## Learning rate is 8.3333333333333e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.8359282115156 
-## Accuracy on holdout data = 0.80727146596033 
+## Accuracy on training data = 0.96264507728019 
+## Accuracy on holdout data = 0.84766499542774 
 
 ## Epoch #4 
-## Learning rate is 0.00076923076923077 
+## Learning rate is 7.6923076923077e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.8881050784125 
-## Accuracy on holdout data = 0.85662031343613 
+## Accuracy on training data = 0.97337938062617 
+## Accuracy on holdout data = 0.89912654116608 
 
 ## Epoch #5 
-## Learning rate is 0.00071428571428571 
+## Learning rate is 7.1428571428571e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.92757742172904 
-## Accuracy on holdout data = 0.88525210481506 
+## Accuracy on training data = 0.97470418388722 
+## Accuracy on holdout data = 0.89575253050799 
 
 ## Epoch #6 
-## Learning rate is 0.00066666666666667 
+## Learning rate is 6.6666666666667e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.94217290381022 
-## Accuracy on holdout data = 0.90404565950872 
+## Accuracy on training data = 0.97661778859763 
+## Accuracy on holdout data = 0.90615835777126 
 
 ## Epoch #7 
-## Learning rate is 0.000625 
+## Learning rate is 6.25e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.94900073600181 
-## Accuracy on holdout data = 0.91536593825876 
+## Accuracy on training data = 0.97519107739342 
+## Accuracy on holdout data = 0.90341500331095 
 
 ## Epoch #8 
-## Learning rate is 0.00058823529411765 
+## Learning rate is 5.8823529411765e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.95376776312065 
-## Accuracy on holdout data = 0.90442405322738 
+## Accuracy on training data = 0.97873520919436 
+## Accuracy on holdout data = 0.9077349982657 
 
 ## Epoch #9 
-## Learning rate is 0.00055555555555556 
+## Learning rate is 5.5555555555556e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.95466228839948 
-## Accuracy on holdout data = 0.90483397975594 
+## Accuracy on training data = 0.97705938968465 
+## Accuracy on holdout data = 0.90401412669883 
 
 ## Epoch #10 
-## Learning rate is 0.00052631578947368 
+## Learning rate is 5.2631578947368e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.95424333352205 
-## Accuracy on holdout data = 0.9046447828966 
+## Accuracy on training data = 0.97927871822454 
+## Accuracy on holdout data = 0.90779806388547 
 
 ## Epoch #11 
-## Learning rate is 0.0005 
+## Learning rate is 5e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.96005208628206 
-## Accuracy on holdout data = 0.90294201116261 
+## Accuracy on training data = 0.97513446186944 
+## Accuracy on holdout data = 0.88581969539306 
 
 ## Epoch #12 
-## Learning rate is 0.00047619047619048 
+## Learning rate is 4.7619047619048e-05 
 ## Evaluating current model on training and holdout data... 
-## Accuracy on training data = 0.95950857725188 
-## Accuracy on holdout data = 0.90231135496484 
+## Accuracy on training data = 0.97777274528676 
+## Accuracy on holdout data = 0.88890991076215 
 
 ## Epoch #13 
-## Learning rate is 0.00045454545454545 
+## Learning rate is 4.5454545454545e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.97945988790126 
+## Accuracy on holdout data = 0.90530697190427 
+
+## Epoch #14 
+## Learning rate is 4.3478260869565e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.97975428862594 
+## Accuracy on holdout data = 0.90713587487781 
+
+## Epoch #15 
+## Learning rate is 4.1666666666667e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.97828228500255 
+## Accuracy on holdout data = 0.89562639926844 
+
+## Epoch #16 
+## Learning rate is 4e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98011662797939 
+## Accuracy on holdout data = 0.89332450414656 
+
+## Epoch #17 
+## Learning rate is 3.8461538461538e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98354752873238 
+## Accuracy on holdout data = 0.90962696685902 
+
+## Epoch #18 
+## Learning rate is 3.7037037037037e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98133952329729 
+## Accuracy on holdout data = 0.91290637908744 
+
+## Epoch #19 
+## Learning rate is 3.5714285714286e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98362679046595 
+## Accuracy on holdout data = 0.90473938132627 
+
+## Epoch #20 
+## Learning rate is 3.448275862069e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.97727452867576 
+## Accuracy on holdout data = 0.89348216819601 
+
+## Epoch #21 
+## Learning rate is 3.3333333333333e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98357017494197 
+## Accuracy on holdout data = 0.90344653612083 
+
+## Epoch #22 
+## Learning rate is 3.2258064516129e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98335503595086 
+## Accuracy on holdout data = 0.89512187431022 
+
+## Epoch #23 
+## Learning rate is 3.125e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98119232293495 
+## Accuracy on holdout data = 0.89105414183458 
+
+## Epoch #24 
+## Learning rate is 3.030303030303e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98561965690992 
+## Accuracy on holdout data = 0.91410462586321 
+
+## Epoch #25 
+## Learning rate is 2.9411764705882e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98692181396139 
+## Accuracy on holdout data = 0.91397849462366 
+
+## Epoch #26 
+## Learning rate is 2.8571428571429e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98653682839835 
+## Accuracy on holdout data = 0.91631192255542 
+
+## Epoch #27 
+## Learning rate is 2.7777777777778e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98627639698805 
+## Accuracy on holdout data = 0.91760476776086 
+
+## Epoch #28 
+## Learning rate is 2.7027027027027e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98696710638057 
+## Accuracy on holdout data = 0.91378929776432 
+
+## Epoch #29 
+## Learning rate is 2.6315789473684e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.98550642586197 
+## Accuracy on holdout data = 0.90246901901428 
+
+## Epoch #30 
+## Learning rate is 2.5641025641026e-05 
+## Evaluating current model on training and holdout data... 

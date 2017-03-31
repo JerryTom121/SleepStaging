@@ -8,17 +8,17 @@
 # "AD" - artifact detection
 # "SS" - sleep staging
 PROBLEM = "SS"
-# Number of classes
 num_classes = 3 if PROBLEM == 'SS' else 2
+
 # Optimization parameters
-learning_rate = 0.0005
-learning_rate_decay = 0.3
+learning_rate = 0.00005
+learning_rate_decay = 0.1
 momentum = 0.5
 dropout = 0.5
-weight_decay = 0.001
-batch_size = 75
+weight_decay = 0.0001
+batch_size = 100
 max_epochs = 50
-num_neighbors = 0 # should be even number (bi-directional)
+num_neighbors = 2 # must be even number (bi-directional)
 
 # ---------------------------------------------------------------------------- #
 # -- File paths to data sets: generally, there is no need to change this ----- #

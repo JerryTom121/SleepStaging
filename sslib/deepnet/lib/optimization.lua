@@ -40,7 +40,11 @@ function MBGD:train()
 	print("## Learning rate is "..optimConfig.learningRate)
 
 	-- long story... read on torch website
-	criterion.sizeAverage = false
+	if batchSize<10 then
+		criterion.sizeAverage = false
+	else
+		criterion.sizeAverage = true
+	end
    
 	-- Number of samples
 	local nsamples = dataset:size()
@@ -59,7 +63,7 @@ function MBGD:train()
 	parameters,gradParameters = model:getParameters()
 	
 	-- shuffle before creating mini-batches
-	-- Also remove shuffling when introducing recurrency !!!
+	-- Also think whether shuffling is to be removed in case we use LSTMs
 	local shuffle = torch.randperm(nsamples, 'torch.LongTensor')
 
 	-- for current iteration, perform batch by batch training procedure
@@ -69,17 +73,20 @@ function MBGD:train()
 	        xlua.progress(t, nsamples)
 
 		-- create mini batch
-		local inputs  = {}
-	        local targets = {}
-	        for i = t,math.min(t+batchSize-1, nsamples) do
-	        	local input  = dataset.data[shuffle[i]]
-			local target = dataset.label[shuffle[i]]
-			-- Should we skip this sample??
-			if target[1]<=nclasses then
-			        table.insert(inputs, input)
-			        table.insert(targets, target)
-			end
+		local inputs  = torch.CudaTensor(batchSize, dataset.data[1]:size()[1], dataset.data[1]:size()[2])
+	        local targets = torch.CudaTensor(batchSize)
+	        local k = 0
+		for i = t,math.min(t+batchSize-1, nsamples) do
+			k = k+1
+			inputs[k] = dataset.data[shuffle[i]]
+			targets[k] = dataset.label[shuffle[i]]
 	        end
+		
+		-- the last mini-batch might not be full..
+		inputs = inputs[{{1, k}, {}, {}}]
+		targets = targets[{{1, k}}]
+
+		--print(inputs:size())
 
 		-- closure function for optimization
 		local feval = function(x)
@@ -89,23 +96,15 @@ function MBGD:train()
 			end
 			-- reset gradients
 			gradParameters:zero()
-			-- f is the average of all criterions
-			local f = 0
-			for i = 1, #inputs do
-				f = f + criterion:forward(model:forward(inputs[i]), targets[i][1])
-				model:backward(inputs[i], criterion:backward(model.output, targets[i][1]))
-			end
-			-- normalize gradients and f(X)
-			gradParameters:div(#inputs)
-			f = f/#inputs
+			-- backpropagate
+			local f = criterion:forward(model:forward(inputs), targets)
+			model:backward(inputs, criterion:backward(model.output, targets))
 			-- return
 			return f, gradParameters
 		end
 	        
-		-- do optimization if the batch is non-empty
-		if #inputs>0 then
-		        optim.adam(feval, parameters, optimConfig)
-		end
+		-- do optimization
+		optim.adam(feval, parameters, optimConfig)
       
 	 end -- end of "for each batch" loop
 

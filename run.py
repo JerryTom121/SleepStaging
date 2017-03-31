@@ -30,6 +30,8 @@ def add_neighbors(features, num_neighbors):
     """Extend feature matrix to surround each sample by num_neighbors/2 on front
     and num_neighbors/2 on the back.
     """
+    # number of neighbors must be even (bi-directional context)
+    assert(number_neighbors % 2 == 0)
     # initialize feature matrix
     M = np.array([])
     for c in range(num_channels):
@@ -43,42 +45,46 @@ def add_neighbors(features, num_neighbors):
     # return newly constructed feature matrix
     return M
 
-def generate_csv(datapath, scaler=None): 
-    # TODO: make it more elegant-avoid 'if'
+def generate_csv(datapath, scaler=None):
+    # TODO: make it more elegant - avoid 'if'
+    # TODO: leaving out ambigious samples needs to be cleaner
     """Given the path to data, parse raw recordings and scorings, merge these
     and write into a .csv file.
     """
-    # Acquire paths to recordings
+    # Acquire recordings
     recordings = []
     for recording in os.listdir(datapath['recordings']):
         recordings.append(datapath['recordings']+recording)
-    # Extract features
     t_features = FeatureExtractor(recordings).get_temporal_features() # 3 channels
     #f_features = FeatureExtractor(recordings).get_fourier_features() # 3 channels (so far)
     #features = np.hstack((t_features,f_features))
     features = t_features
+    # Sanity check
     assert(np.shape(features)[1]==signal_length*num_channels)
+    # Acquire scorings
+    scorings = []
+    for scoring in os.listdir(datapath['scorings']):
+        scorings.append(datapath['scorings']+scoring)
+    if cfg.PROBLEM == "AD":
+        labels = ScoringParser(scorings).get_binary_scorings()
+    elif cfg.PROBLEM == "SS":
+        labels = ScoringParser(scorings).get_4stage_scorings()
+    # Sanity check: #labels is equal to #features
+    assert(np.shape(features)[0]==len(labels))
+    # Leave out ambigious samples
+    features = features[labels.flatten()<4,:]
+    labels = labels[labels.flatten()<4]
     # Normalize if scaler is given, otherwise make it
     if scaler==None:
         scaler = prep.NormalizerZMUV(num_channels)
         features = scaler.fit_transform(features)
     else:
         features = scaler.transform(features)
-    # Acquire paths to scorings
-    scorings = []
-    for scoring in os.listdir(datapath['scorings']):
-        scorings.append(datapath['scorings']+scoring)
-    # Get labels based on the problem we are solving
-    if cfg.PROBLEM == "AD":
-        labels = ScoringParser(scorings).get_binary_scorings()
-    elif cfg.PROBLEM == "SS":
-        labels = ScoringParser(scorings).get_4stage_scorings()
-    # Make sure #labels is equal to #features
-    assert(np.shape(features)[0]==len(labels))
     # Add neighbors to capture the context
     features = add_neighbors(features, cfg.num_neighbors)
     # Concatenate features and labels, and save the data
     dataset = np.hstack((features,labels))
+    # Save constructed dataset into a .csv file
     np.savetxt(datapath['csv'], dataset, delimiter=",")
     print "# The shape of data is: " + str(np.shape(dataset))
     # Return scaler
