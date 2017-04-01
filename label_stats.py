@@ -1,12 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
 import os
+np.set_printoptions(suppress=True)
 
 ######### Parameters, adapt if necessary #############
 labelPath = './data/scorings'	# can split into test and train
-SCORER = 1	# 1: double scores, 2: scorer 1, : scorer 2
+SCORER = 3	# 1: double scores, 2: scorer 1, : scorer 2
+IGNORE_ARTIFACTS_AND_UNDECIDED = True # ignore artifacts and undecided scores for length of episodes
 ##################################
 
 
@@ -53,10 +54,28 @@ def processFile(path):
 				undecidedPairs[both] = c+1
 			# state transition
 			if labelToInt(label) != state:
-				changes[state, labelToInt(label)] += 1
-				state = labelToInt(label)
-				episodes[labelToInt(label)].append(length)
-				length = 1 
+				if IGNORE_ARTIFACTS_AND_UNDECIDED:
+					if labelToInt(label) <= 2: # no state transition for artifacts and undecided labels
+						changes[state, labelToInt(label)] += 1
+						state = labelToInt(label)
+						episodes[labelToInt(label)].append(length)
+						# print(length)
+						# print("")
+						length = 1
+					else:
+						length += 1
+				
+				else: # Artifacts and Undecided labels count as episodes
+					# Sanity check
+					# print("state: " + str(state))
+					# print("label: " + str(labelToInt(label)))
+
+					changes[state, labelToInt(label)] += 1
+					state = labelToInt(label)
+					episodes[labelToInt(label)].append(length)
+					# print(length)
+					# print("")
+					length = 1
 			else:
 				length += 1
 
@@ -93,12 +112,17 @@ nMean = np.mean(nEpisodes)
 print("Mean n episode: {}".format(nMean))
 rMean = np.mean(rEpisodes)
 print("Mean r episode: {}".format(rMean))
-aMean = np.mean(aEpisodes)
+
+if IGNORE_ARTIFACTS_AND_UNDECIDED:
+	aMean = 0 # avoid error for mean of empty array
+else: 
+	aMean = np.mean(aEpisodes)
 print("Mean a episode: {}".format(aMean))
-if SCORER == 1:
+
+if SCORER != 1 or IGNORE_ARTIFACTS_AND_UNDECIDED:
+	uMean = 0; # avoid error for mean of empty array
+else: 
 	uMean = np.mean(uEpisodes)
-else:
-	uMean = 0;
 print("Mean u episode: {}".format(uMean))
 
 meanEpisodelength = \
@@ -115,5 +139,8 @@ meanEpisodelength = \
 
 print("mean episode: {}".format(meanEpisodelength))
 
+#sanity check
+# print("total nunber of episodes: {}".format(np.sum(changes)))
+# print("Alleged number of labels: {}".format(np.sum(changes) * meanEpisodelength))
 
 #TODO: print figures
