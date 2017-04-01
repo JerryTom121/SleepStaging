@@ -28,8 +28,8 @@ num_channels = 3
 def add_neighbors(features, num_neighbors):
     # TODO: implement this more elegantly
     """Extend feature matrix to surround each sample by num_neighbors/2 on front
-    and num_neighbors/2 on the back.
-    """
+    and num_neighbors/2 on the back."""
+
     # number of neighbors must be even (bi-directional context)
     assert(number_neighbors % 2 == 0)
     # initialize feature matrix
@@ -47,8 +47,8 @@ def add_neighbors(features, num_neighbors):
 
 def generate_csv(datapath, scaler=None):
     """Given the path to data, parse raw recordings and scorings, merge these
-    and write into a .csv file.
-    """
+    and write into a .csv file."""
+
     # Acquire recordings
     recordings = []
     for recording in os.listdir(datapath['recordings']):
@@ -110,7 +110,6 @@ def train(gpu):
     os.system('CUDA_VISIBLE_DEVICES='+gpu+' '+'th sslib/deepnet/train.lua'\
               +' -learningRate '+str(cfg.learning_rate)\
               +' -learningRateDecay '+str(cfg.learning_rate_decay)\
-              +' -momentum '+str(cfg.momentum)\
               +' -weightDecay '+str(cfg.weight_decay)\
               +' -dropout '+str(cfg.dropout)\
               +' -batchSize '+str(cfg.batch_size)\
