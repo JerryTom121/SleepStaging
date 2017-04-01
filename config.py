@@ -11,7 +11,7 @@ PROBLEM = "SS"
 num_classes = 3 if PROBLEM == 'SS' else 2
 
 # Optimization parameters
-learning_rate = 0.00005
+learning_rate = 0.00001
 learning_rate_decay = 0.1
 momentum = 0.5
 dropout = 0.5
