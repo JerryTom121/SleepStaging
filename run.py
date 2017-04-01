@@ -13,7 +13,7 @@ import sslib.parsing as pars
 from sslib.shallow import train as shtrain
 
 # --------------------------------------------------------------------------- #
-# -- UZH format specific initialization ------------------------------------- #
+# ----- UZH format specific initialization ---------------------------------- #
 # --------------------------------------------------------------------------- #
 # TODO: make configurable formatting
 FeatureExtractor = prep.FeatureExtractorUZH
@@ -46,8 +46,6 @@ def add_neighbors(features, num_neighbors):
     return M
 
 def generate_csv(datapath, scaler=None):
-    # TODO: make it more elegant - avoid 'if'
-    # TODO: leaving out ambigious samples needs to be cleaner
     """Given the path to data, parse raw recordings and scorings, merge these
     and write into a .csv file.
     """
@@ -55,26 +53,25 @@ def generate_csv(datapath, scaler=None):
     recordings = []
     for recording in os.listdir(datapath['recordings']):
         recordings.append(datapath['recordings']+recording)
-    t_features = FeatureExtractor(recordings).get_temporal_features() # 3 channels
-    #f_features = FeatureExtractor(recordings).get_fourier_features() # 3 channels (so far)
-    #features = np.hstack((t_features,f_features))
-    features = t_features
+    # Extract features
+    temporal_features = FeatureExtractor(recordings).get_temporal_features() # 3 channels
+    #fourier_features = FeatureExtractor(recordings).get_fourier_features() # 3 channels (so far)
+    #features = np.hstack((temporal_features,fourier_features))
+    features = temporal_features
     # Sanity check
     assert(np.shape(features)[1]==signal_length*num_channels)
     # Acquire scorings
     scorings = []
     for scoring in os.listdir(datapath['scorings']):
         scorings.append(datapath['scorings']+scoring)
-    if cfg.PROBLEM == "AD":
-        labels = ScoringParser(scorings).get_binary_scorings()
-    elif cfg.PROBLEM == "SS":
-        labels = ScoringParser(scorings).get_4stage_scorings()
+    # Extract labels
+    labels = ScoringParser(scorings).get_4stage_scorings()
     # Sanity check: #labels is equal to #features
     assert(np.shape(features)[0]==len(labels))
-    # Leave out ambigious samples
-    features = features[labels.flatten()<4,:]
-    labels = labels[labels.flatten()<4]
-    # Normalize if scaler is given, otherwise make it
+    # Leave out ambigious samples TODO: avoid label hardcoding
+    features = features[labels.flatten()<5,:]
+    labels = labels[labels.flatten()<5]
+    # Normalize features if scaler is given, otherwise make it
     if scaler==None:
         scaler = prep.NormalizerZMUV(num_channels)
         features = scaler.fit_transform(features)
@@ -95,8 +92,8 @@ def generate_csv(datapath, scaler=None):
 # ---------------------------------------------------------------------------- #
 def prepare():
     """ Given raw recordings and scorings file generate 3 different data sets in
-    .csv format: training set, holdout set and testing set.
-    """    
+    .csv format: training set, holdout set and testing set."""
+
     print "## Generate training data set:"
     scaler = generate_csv(cfg.TRAINSET)
     print "## Generate holdout data set:"
@@ -108,8 +105,8 @@ def prepare():
 def train(gpu):
     """Train model on specified GPU using previously prepared training and holdout
     data sets. Essentially we call corresponding .lua script in torch framework 
-    and we use previously configured training parameters ('config.py' file).
-    """
+    and we use previously configured training parameters ('config.py' file)."""
+
     os.system('CUDA_VISIBLE_DEVICES='+gpu+' '+'th sslib/deepnet/train.lua'\
               +' -learningRate '+str(cfg.learning_rate)\
               +' -learningRateDecay '+str(cfg.learning_rate_decay)\

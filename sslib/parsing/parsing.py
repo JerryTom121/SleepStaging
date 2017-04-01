@@ -126,7 +126,7 @@ class _ScoringParser(object):
         """
 
     def get_raw_scorings(self):
-        """To be implemented in derived classes
+        """Parse scorings in raw format without any mapping
         """
 
         scorings = pd.DataFrame(columns=['label'])
@@ -156,7 +156,6 @@ class _ScoringParser(object):
         mapped_scorings = \
         scorings.replace({"label": self._get_4stage_mapping()})
         return np.array(mapped_scorings)
-
 
 class ScoringParserUZH(_ScoringParser):
     """Class for parsing files given in UZH format

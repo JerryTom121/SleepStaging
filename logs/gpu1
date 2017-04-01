@@ -43,3 +43,23 @@ nn.Sequential {
   (9): nn.LogSoftMax
 } 
 ## Loading training data... 
+## Data loaded from .csv file 
+## Data reshaped and made compatible for CUDA 
+## Loading holdout data... 
+## Data loaded from .csv file 
+## Data reshaped and made compatible for CUDA 
+
+## Epoch #1 
+## Learning rate is 1e-05 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.71126082771896 
+## Accuracy on holdout data = 0.71163245356794 
+
+## Epoch #2 
+## Learning rate is 9.0909090909091e-06 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.90742229519334 
+## Accuracy on holdout data = 0.89720303976287 
+
+## Epoch #3 
+## Learning rate is 8.3333333333333e-06 

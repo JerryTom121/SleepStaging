@@ -130,3 +130,20 @@ nn.Sequential {
 ## Epoch #14 
 ## Learning rate is 4.3478260869565e-06 
 ## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.97945988790126 
+## Accuracy on holdout data = 0.92646548733958 
+
+## Epoch #15 
+## Learning rate is 4.1666666666667e-06 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.97964105757799 
+## Accuracy on holdout data = 0.92706461072746 
+
+## Epoch #16 
+## Learning rate is 4e-06 
+## Evaluating current model on training and holdout data... 
+## Accuracy on training data = 0.97780671460114 
+## Accuracy on holdout data = 0.92154636899694 
+
+## Epoch #17 
+## Learning rate is 3.8461538461538e-06 

@@ -4,21 +4,20 @@
 # ---------------------------------------------------------------------------- #
 # ------------ User defined variables - to be set ---------------------------- #
 # ---------------------------------------------------------------------------- #
-# Currently we are able to solve two problems
-# "AD" - artifact detection
-# "SS" - sleep staging
-PROBLEM = "SS"
-num_classes = 3 if PROBLEM == 'SS' else 2
-
 # Optimization parameters
 learning_rate = 0.00001
 learning_rate_decay = 0.1
-momentum = 0.5
 dropout = 0.5
 weight_decay = 0.0001
 batch_size = 100
 max_epochs = 50
 num_neighbors = 2 # must be even number (bi-directional)
+
+# ---------------------------------------------------------------------------- #
+# -- Constants: generally, there is no need to change this ------------------- #
+# ---------------------------------------------------------------------------- #
+# we have the following classes: {wake, REM, NREM, Artifact}
+num_classes = 4
 
 # ---------------------------------------------------------------------------- #
 # -- File paths to data sets: generally, there is no need to change this ----- #
