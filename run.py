@@ -4,16 +4,12 @@
 import config as cfg
 import os
 import sys
-import subprocess
-import numpy as np
 from sklearn.externals import joblib
-from sklearn import metrics
 import sslib.preprocessing as prep
 import sslib.parsing as pars
-from sslib.shallow import train as shtrain
 
 # --------------------------------------------------------------------------- #
-# ----- UZH format specific initialization ---------------------------------- #
+# -- UZH format specific initialization ------------------------------------- #
 # --------------------------------------------------------------------------- #
 # TODO: make configurable formatting
 FeatureExtractor = prep.FeatureExtractorUZH
@@ -23,28 +19,27 @@ signal_length = 512
 num_channels = 3
 
 # ---------------------------------------------------------------------------- #
-# ----- Utility functions ---------------------------------------------------- #
+# -- Auxiliary functions ----------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 def add_neighbors(features, num_neighbors):
-    # TODO: implement this more elegantly
     """Extend feature matrix to surround each sample by num_neighbors/2 on front
     and num_neighbors/2 on the back."""
 
     # number of neighbors must be even (bi-directional context)
     assert(num_neighbors % 2 == 0)
     # initialize feature matrix
-    M = np.array([])
+    F = np.array([])
     # surround each channel with its neighbors
     for c in range(num_channels):
-        A = features[:, c*signal_length:(c+1)*signal_length]
-        T = A.copy()
+        C = features[:, c*signal_length:(c+1)*signal_length]
+        C_AUG = C.copy()
         for n in range(num_neighbors/2):
-            prev = np.roll(A, shift=(n+1), axis=0)
-            subq = np.roll(A, shift=-(n+1), axis=0)
-            T = np.hstack((prev, T, subq))
-        M = np.hstack((M, T)) if M.size else T
+            PREV = np.roll(C, shift=(n+1), axis=0)
+            SUBQ = np.roll(C, shift=-(n+1), axis=0)
+            C_AUG = np.hstack((PREV, C_AUG, SUBQ))
+        F = np.hstack((F, C_AUG)) if F.size else C_AUG
     # return newly constructed feature matrix
-    return M
+    return F
 
 def generate_csv(datapath, scaler=None):
     """Given the path to data, parse raw recordings and scorings, merge these
@@ -89,7 +84,7 @@ def generate_csv(datapath, scaler=None):
     return scaler
 
 # ---------------------------------------------------------------------------- #
-# ----- Main functions ------------------------------------------------------- #
+# -- Main functions ---------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 def prepare():
     """ Given raw recordings and scorings file generate 3 different data sets in
@@ -124,7 +119,7 @@ def train(gpu):
               +' -numChannels '+str(num_channels))
 
 # ---------------------------------------------------------------------------- #
-# - Parse command to process data, train a model or evaluate already trained - #
+# -- Parse command to process data, train a model or evaluate already trained  #
 # ---------------------------------------------------------------------------- #
 command = sys.argv[1]
 gpu = sys.argv[2] if len(sys.argv)>2 else "0"

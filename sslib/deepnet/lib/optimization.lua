@@ -63,7 +63,6 @@ function MBGD:train()
 	parameters,gradParameters = model:getParameters()
 	
 	-- shuffle before creating mini-batches
-	-- Also think whether shuffling is to be removed in case we use LSTMs
 	local shuffle = torch.randperm(nsamples, 'torch.LongTensor')
 
 	-- for current iteration, perform batch by batch training procedure
