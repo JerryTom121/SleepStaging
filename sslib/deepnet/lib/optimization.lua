@@ -86,8 +86,6 @@ function MBGD:train()
 		inputs = inputs[{{1, k}, {}, {}}]
 		targets = targets[{{1, k}}]
 
-		--print(inputs:size())
-
 		-- closure function for optimization
 		local feval = function(x)
 			-- get new parameters

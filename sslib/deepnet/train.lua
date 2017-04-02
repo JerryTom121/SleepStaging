@@ -15,7 +15,6 @@ require 'paths'
 require 'math'
 require 'sslib.deepnet.lib.optimization'
 local inout = require 'sslib.deepnet.lib.inout'
-local debug = require 'sslib.deepnet.lib.debug'
 local eval  = require 'sslib.deepnet.lib.eval'
 local util  = require 'sslib.deepnet.lib.util'
 

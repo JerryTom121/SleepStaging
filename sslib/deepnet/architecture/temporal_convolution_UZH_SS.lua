@@ -21,7 +21,7 @@ MP_L2_region = 2
 MP_L2_stride = 2
 
 -- FC layers
-denseNetwork = 500
+denseNetwork = 2000
 
 -- feature extractor
 convnet = nn.Sequential()

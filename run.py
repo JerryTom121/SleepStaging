@@ -18,7 +18,7 @@ from sslib.shallow import train as shtrain
 # TODO: make configurable formatting
 FeatureExtractor = prep.FeatureExtractorUZH
 ScoringParser = pars.ScoringParserUZH
-architecture = "temporal_convolution_UZH_"+cfg.PROBLEM
+architecture = "temporal_convolution_UZH_SS"
 signal_length = 512
 num_channels = 3
 
@@ -31,9 +31,10 @@ def add_neighbors(features, num_neighbors):
     and num_neighbors/2 on the back."""
 
     # number of neighbors must be even (bi-directional context)
-    assert(number_neighbors % 2 == 0)
+    assert(num_neighbors % 2 == 0)
     # initialize feature matrix
     M = np.array([])
+    # surround each channel with its neighbors
     for c in range(num_channels):
         A = features[:, c*signal_length:(c+1)*signal_length]
         T = A.copy()
@@ -68,9 +69,9 @@ def generate_csv(datapath, scaler=None):
     labels = ScoringParser(scorings).get_4stage_scorings()
     # Sanity check: #labels is equal to #features
     assert(np.shape(features)[0]==len(labels))
-    # Leave out ambigious samples TODO: avoid label hardcoding
-    features = features[labels.flatten()<5,:]
-    labels = labels[labels.flatten()<5]
+    # Leave only samples used in the training process
+    features = features[labels.flatten()<cfg.num_classes+1,:]
+    labels = labels[labels.flatten()<cfg.num_classes+1]
     # Normalize features if scaler is given, otherwise make it
     if scaler==None:
         scaler = prep.NormalizerZMUV(num_channels)

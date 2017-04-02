@@ -2,22 +2,23 @@
 # License:
 
 # ---------------------------------------------------------------------------- #
-# ------------ User defined variables - to be set ---------------------------- #
+# -- Variables related to data preparation and feature extraction  ----------- #
 # ---------------------------------------------------------------------------- #
-# Optimization parameters
+# We have the following classes: {WAKE, REM, NREM, ARTIFACT}
+# - in case we do not consider artifacts set this number to 3 else 4
+num_classes = 4
+# Number of neighbours to be included - must be even number (bi-directional)
+num_neighbors = 2 # must be even number (bi-directional)
+
+# ---------------------------------------------------------------------------- #
+# -- Variables related to training procedure --------------------------------- #
+# ---------------------------------------------------------------------------- #
 learning_rate = 0.00001
 learning_rate_decay = 0.1
 dropout = 0.5
 weight_decay = 0.0001
-batch_size = 100
+batch_size = 200
 max_epochs = 50
-num_neighbors = 2 # must be even number (bi-directional)
-
-# ---------------------------------------------------------------------------- #
-# -- Constants: generally, there is no need to change this ------------------- #
-# ---------------------------------------------------------------------------- #
-# we have the following classes: {wake, REM, NREM, Artifact}
-num_classes = 4
 
 # ---------------------------------------------------------------------------- #
 # -- File paths to data sets: generally, there is no need to change this ----- #
