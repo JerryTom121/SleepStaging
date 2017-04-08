@@ -7,6 +7,7 @@ import sys
 from sklearn.externals import joblib
 import sslib.preprocessing as prep
 import sslib.parsing as pars
+import numpy as np
 
 # --------------------------------------------------------------------------- #
 # -- UZH format specific initialization ------------------------------------- #
@@ -50,12 +51,13 @@ def generate_csv(datapath, scaler=None):
     for recording in os.listdir(datapath['recordings']):
         recordings.append(datapath['recordings']+recording)
     # Extract features
-    temporal_features = FeatureExtractor(recordings).get_temporal_features() # 3 channels
-    #fourier_features = FeatureExtractor(recordings).get_fourier_features() # 3 channels (so far)
+    #temporal_features = FeatureExtractor(recordings).get_temporal_features() # 3 channels
+    fourier_features = FeatureExtractor(recordings).get_fourier_features() # 3 channels
     #features = np.hstack((temporal_features,fourier_features))
-    features = temporal_features
+    #features = temporal_features
+    features = fourier_features
     # Sanity check
-    assert(np.shape(features)[1]==signal_length*num_channels)
+    assert(np.shape(features)[1] == signal_length*num_channels)
     # Acquire scorings
     scorings = []
     for scoring in os.listdir(datapath['scorings']):
@@ -64,12 +66,12 @@ def generate_csv(datapath, scaler=None):
     labels = ScoringParser(scorings).get_4stage_scorings()
     # Sanity check: #labels is equal to #features
     assert(np.shape(features)[0]==len(labels))
-    # Leave only samples used in the training process
+    # Leave only labeled samples used in the training process
     features = features[labels.flatten()<cfg.num_classes+1,:]
     labels = labels[labels.flatten()<cfg.num_classes+1]
     # Normalize features if scaler is given, otherwise make it
     if scaler==None:
-        scaler = prep.NormalizerZMUV(num_channels)
+        scaler = prep.NormalizerZMUV(num_channels, signal_length)
         features = scaler.fit_transform(features)
     else:
         features = scaler.transform(features)

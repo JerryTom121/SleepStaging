@@ -60,3 +60,5 @@ function M.predict_and_evaluate(testset, network)
     return ncorrect/testset:size()
 
 end
+
+return M
