@@ -1,4 +1,4 @@
-[program started on Fri Apr  7 09:01:18 2017] 
+[program started on Wed Apr 12 01:01:54 2017] 
 [command line arguments] 
 gpu 6 
 trainPath ./data/CSV/trainset.csv 
@@ -13,7 +13,7 @@ nclasses 3
 dropout 0.5 
 weightDecay 0.001 
 architecture temporal_convolution_UZH_SS 
-batchSize 200 
+batchSize 50 
 [----------------------] 
 ## NN architecture: 
 1536 
@@ -53,353 +53,243 @@ nn.Sequential {
 ## Learning rate is 1e-05 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   39244    2012     603       0]   93.753% 	[class: 1]
- [   16421   23218     171       0]   58.322% 	[class: 2]
- [     977     153    5516       0]   82.997% 	[class: 3]
+[[   41050     677     132       0]   98.067% 	[class: 1]
+ [    4441   35087     282       0]   88.136% 	[class: 2]
+ [     671     120    5855       0]   88.098% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 78.35738658905% 
- + average rowUcol correct (VOC measure): 65.293425321579% 
- + global correct: 76.972201777727% 
+ + average row correct: 91.433856884638% 
+ + average rowUcol correct (VOC measure): 85.577549537023% 
+ + global correct: 92.84040083791% 
 ConfusionMatrix:
-[[   11102    1263     398       0]   86.986% 	[class: 1]
- [    5351   11344      96       0]   67.560% 	[class: 2]
- [     190      29    1940       0]   89.856% 	[class: 3]
+[[   12310     392      61       0]   96.451% 	[class: 1]
+ [    2345   14381      65       0]   85.647% 	[class: 2]
+ [     269      41    1849       0]   85.642% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 81.467413902283% 
- + average rowUcol correct (VOC measure): 65.503708521525% 
- + global correct: 76.895910194557% 
-## Accuracy on training data = 0.76972201777727 
-## Accuracy on holdout data = 0.76895910194557 
+ + average row correct: 89.24641807874% 
+ + average rowUcol correct (VOC measure): 81.489209334056% 
+ + global correct: 89.994639422319% 
+## Accuracy on training data = 0.9284040083791 
+## Accuracy on holdout data = 0.89994639422319 
 
 ## Epoch #2 
 ## Learning rate is 9.0909090909091e-06 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   39102    1959     798       0]   93.414% 	[class: 1]
- [    2411   36976     423       0]   92.881% 	[class: 2]
- [     331     158    6157       0]   92.642% 	[class: 3]
+[[   40958     671     230       0]   97.848% 	[class: 1]
+ [    1865   37470     475       0]   94.122% 	[class: 2]
+ [     220      76    6350       0]   95.546% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 92.978992064794% 
- + average rowUcol correct (VOC measure): 84.708563486735% 
- + global correct: 93.115552284436% 
+ + average row correct: 95.838602383931% 
+ + average rowUcol correct (VOC measure): 90.658762057622% 
+ + global correct: 95.99501783389% 
 ConfusionMatrix:
-[[   10864    1409     490       0]   85.121% 	[class: 1]
- [     710   15835     246       0]   94.306% 	[class: 2]
- [      89      35    2035       0]   94.257% 	[class: 3]
+[[   11985     582     196       0]   93.904% 	[class: 1]
+ [    1225   15434     132       0]   91.918% 	[class: 2]
+ [     100      44    2015       0]   93.330% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 91.228042046229% 
- + average rowUcol correct (VOC measure): 79.079429308573% 
- + global correct: 90.606375934159% 
-## Accuracy on training data = 0.93115552284436 
-## Accuracy on holdout data = 0.90606375934159 
+ + average row correct: 93.050930897395% 
+ + average rowUcol correct (VOC measure): 84.902761379878% 
+ + global correct: 92.813672626368% 
+## Accuracy on training data = 0.9599501783389 
+## Accuracy on holdout data = 0.92813672626368 
 
 ## Epoch #3 
 ## Learning rate is 8.3333333333333e-06 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   39822    1573     464       0]   95.134% 	[class: 1]
- [    1515   37954     341       0]   95.338% 	[class: 2]
- [     261     157    6228       0]   93.711% 	[class: 3]
+[[   40807     812     240       0]   97.487% 	[class: 1]
+ [     998   38483     329       0]   96.667% 	[class: 2]
+ [     127      81    6438       0]   96.870% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 94.727339347204% 
- + average rowUcol correct (VOC measure): 88.738352060318% 
- + global correct: 95.118609522731% 
+ + average row correct: 97.007920344671% 
+ + average rowUcol correct (VOC measure): 92.903983592987% 
+ + global correct: 97.070712789447% 
 ConfusionMatrix:
-[[   11170    1230     363       0]   87.519% 	[class: 1]
- [     484   16110     197       0]   95.944% 	[class: 2]
- [      81      38    2040       0]   94.488% 	[class: 3]
+[[   11378    1033     352       0]   89.148% 	[class: 1]
+ [     602   16068     121       0]   95.694% 	[class: 2]
+ [      38      62    2059       0]   95.368% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 92.650351921717% 
- + average rowUcol correct (VOC measure): 82.681234677633% 
- + global correct: 92.454198593637% 
-## Accuracy on training data = 0.95118609522731 
-## Accuracy on holdout data = 0.92454198593637 
+ + average row correct: 93.403555949529% 
+ + average rowUcol correct (VOC measure): 84.3188504378% 
+ + global correct: 93.037555576577% 
+## Accuracy on training data = 0.97070712789447 
+## Accuracy on holdout data = 0.93037555576577 
 
 ## Epoch #4 
 ## Learning rate is 7.6923076923077e-06 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   39891    1401     567       0]   95.299% 	[class: 1]
- [    1095   38246     469       0]   96.071% 	[class: 2]
- [     135      81    6430       0]   96.750% 	[class: 3]
+[[   40973     811      75       0]   97.883% 	[class: 1]
+ [     764   38885     161       0]   97.676% 	[class: 2]
+ [     177     140    6329       0]   95.230% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 96.039923032125% 
- + average rowUcol correct (VOC measure): 89.634527762731% 
- + global correct: 95.756100322708% 
+ + average row correct: 96.930015087128% 
+ + average rowUcol correct (VOC measure): 94.364470243454% 
+ + global correct: 97.590443299553% 
 ConfusionMatrix:
-[[   11017    1219     527       0]   86.320% 	[class: 1]
- [     384   16139     268       0]   96.117% 	[class: 2]
- [      46      27    2086       0]   96.619% 	[class: 3]
+[[   11277    1298     188       0]   88.357% 	[class: 1]
+ [     478   16260      53       0]   96.838% 	[class: 2]
+ [      58     101    2000       0]   92.635% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 93.018533786138% 
- + average rowUcol correct (VOC measure): 81.199902296066% 
- + global correct: 92.208242676505% 
-## Accuracy on training data = 0.95756100322708 
-## Accuracy on holdout data = 0.92208242676505 
+ + average row correct: 92.610013484955% 
+ + average rowUcol correct (VOC measure): 85.839653015137% 
+ + global correct: 93.138460568221% 
+## Accuracy on training data = 0.97590443299553 
+## Accuracy on holdout data = 0.93138460568221 
 
 ## Epoch #5 
 ## Learning rate is 7.1428571428571e-06 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   40138    1352     369       0]   95.889% 	[class: 1]
- [     879   38581     350       0]   96.913% 	[class: 2]
- [     128      91    6427       0]   96.705% 	[class: 3]
+[[   40665     875     319       0]   97.148% 	[class: 1]
+ [     536   38850     424       0]   97.589% 	[class: 2]
+ [      36      34    6576       0]   98.947% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 96.502067645391% 
- + average rowUcol correct (VOC measure): 91.474320491155% 
- + global correct: 96.411708090358% 
+ + average row correct: 97.894281148911% 
+ + average rowUcol correct (VOC measure): 93.415037790934% 
+ + global correct: 97.481741493518% 
 ConfusionMatrix:
-[[   10990    1331     442       0]   86.108% 	[class: 1]
- [     296   16317     178       0]   97.177% 	[class: 2]
- [      46      42    2071       0]   95.924% 	[class: 3]
+[[   10562    1522     679       0]   82.755% 	[class: 1]
+ [     353   16302     136       0]   97.088% 	[class: 2]
+ [      13      66    2080       0]   96.341% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 93.069791793823% 
- + average rowUcol correct (VOC measure): 82.738624016444% 
- + global correct: 92.637088890991% 
-## Accuracy on training data = 0.96411708090358 
-## Accuracy on holdout data = 0.92637088890991 
+ + average row correct: 92.061154047648% 
+ + average rowUcol correct (VOC measure): 79.695467154185% 
+ + global correct: 91.268564941822% 
+## Accuracy on training data = 0.97481741493518 
+## Accuracy on holdout data = 0.91268564941822 
 
 ## Epoch #6 
 ## Learning rate is 6.6666666666667e-06 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   40470    1094     295       0]   96.682% 	[class: 1]
- [     928   38553     329       0]   96.843% 	[class: 2]
- [     122      75    6449       0]   97.036% 	[class: 3]
+[[   41320     468      71       0]   98.712% 	[class: 1]
+ [     914   38680     216       0]   97.162% 	[class: 2]
+ [     105      48    6493       0]   97.698% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 96.853345632553% 
- + average rowUcol correct (VOC measure): 92.36759742101% 
- + global correct: 96.780841306686% 
+ + average row correct: 97.857242822647% 
+ + average rowUcol correct (VOC measure): 95.312748352687% 
+ + global correct: 97.93693030629% 
 ConfusionMatrix:
-[[   11213    1172     378       0]   87.856% 	[class: 1]
- [     342   16281     168       0]   96.963% 	[class: 2]
- [      51      40    2068       0]   95.785% 	[class: 3]
+[[   11421    1056     286       0]   89.485% 	[class: 1]
+ [     644   16057      90       0]   95.629% 	[class: 2]
+ [      33      80    2046       0]   94.766% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 93.534421920776% 
- + average rowUcol correct (VOC measure): 84.039004643758% 
- + global correct: 93.217292592943% 
-## Accuracy on training data = 0.96780841306686 
-## Accuracy on holdout data = 0.93217292592943 
+ + average row correct: 93.293313185374% 
+ + average rowUcol correct (VOC measure): 85.085515181224% 
+ + global correct: 93.097467915366% 
+## Accuracy on training data = 0.9793693030629 
+## Accuracy on holdout data = 0.93097467915366 
 
 ## Epoch #7 
 ## Learning rate is 6.25e-06 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   40637     969     253       0]   97.081% 	[class: 1]
- [     930   38563     317       0]   96.868% 	[class: 2]
- [     115      64    6467       0]   97.307% 	[class: 3]
+[[   40902     859      98       0]   97.714% 	[class: 1]
+ [     405   39217     188       0]   98.510% 	[class: 2]
+ [      45      57    6544       0]   98.465% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 97.084983189901% 
- + average rowUcol correct (VOC measure): 92.918014526367% 
- + global correct: 97.001641850195% 
+ + average row correct: 98.229805628459% 
+ + average rowUcol correct (VOC measure): 95.790662368139% 
+ + global correct: 98.129423087811% 
 ConfusionMatrix:
-[[   11323    1089     351       0]   88.717% 	[class: 1]
- [     354   16286     151       0]   96.992% 	[class: 2]
- [      49      40    2070       0]   95.878% 	[class: 3]
+[[   10450    1836     477       0]   81.877% 	[class: 1]
+ [     312   16402      77       0]   97.683% 	[class: 2]
+ [      17      87    2055       0]   95.183% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 93.862515687943% 
- + average rowUcol correct (VOC measure): 84.891275564829% 
- + global correct: 93.586226468641% 
-## Accuracy on training data = 0.97001641850195 
-## Accuracy on holdout data = 0.93586226468641 
+ + average row correct: 91.581179698308% 
+ + average rowUcol correct (VOC measure): 81.070586045583% 
+ + global correct: 91.151893545234% 
+## Accuracy on training data = 0.98129423087811 
+## Accuracy on holdout data = 0.91151893545234 
 
 ## Epoch #8 
 ## Learning rate is 5.8823529411765e-06 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   40353    1122     384       0]   96.402% 	[class: 1]
- [     615   38777     418       0]   97.405% 	[class: 2]
- [      61      38    6547       0]   98.510% 	[class: 3]
+[[   41172     573     114       0]   98.359% 	[class: 1]
+ [     556   39043     211       0]   98.073% 	[class: 2]
+ [      31      36    6579       0]   98.992% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 97.439257303874% 
- + average rowUcol correct (VOC measure): 92.47339963913% 
- + global correct: 97.012964954991% 
+ + average row correct: 98.47466746966% 
+ + average rowUcol correct (VOC measure): 95.990300178528% 
+ + global correct: 98.27775576063% 
 ConfusionMatrix:
-[[   10765    1394     604       0]   84.345% 	[class: 1]
- [     247   16321     223       0]   97.201% 	[class: 2]
- [      24      38    2097       0]   97.128% 	[class: 3]
+[[   10797    1441     525       0]   84.596% 	[class: 1]
+ [     456   16240      95       0]   96.718% 	[class: 2]
+ [      11      77    2071       0]   95.924% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 92.891518274943% 
- + average rowUcol correct (VOC measure): 80.794018507004% 
- + global correct: 92.022199098162% 
-## Accuracy on training data = 0.97012964954991 
-## Accuracy on holdout data = 0.92022199098162 
+ + average row correct: 92.41287112236% 
+ + average rowUcol correct (VOC measure): 81.610912084579% 
+ + global correct: 91.785703023996% 
+## Accuracy on training data = 0.9827775576063 
+## Accuracy on holdout data = 0.91785703023996 
 
 ## Epoch #9 
 ## Learning rate is 5.5555555555556e-06 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   40734     942     183       0]   97.312% 	[class: 1]
- [     734   38803     273       0]   97.470% 	[class: 2]
- [      82      52    6512       0]   97.984% 	[class: 3]
+[[   41104     728      27       0]   98.196% 	[class: 1]
+ [     396   39354      60       0]   98.855% 	[class: 2]
+ [      90     218    6338       0]   95.366% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 97.588880856832% 
- + average rowUcol correct (VOC measure): 94.080074628194% 
- + global correct: 97.434184453377% 
+ + average row correct: 97.47217297554% 
+ + average rowUcol correct (VOC measure): 95.920898516973% 
+ + global correct: 98.280020381589% 
 ConfusionMatrix:
-[[   11193    1216     354       0]   87.699% 	[class: 1]
- [     303   16344     144       0]   97.338% 	[class: 2]
- [      38      45    2076       0]   96.156% 	[class: 3]
+[[   10812    1760     191       0]   84.714% 	[class: 1]
+ [     380   16398      13       0]   97.659% 	[class: 2]
+ [      36     175    1948       0]   90.227% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 93.730767567952% 
- + average rowUcol correct (VOC measure): 84.696114063263% 
- + global correct: 93.378109923375% 
-## Accuracy on training data = 0.97434184453377 
-## Accuracy on holdout data = 0.93378109923375 
+ + average row correct: 90.866680939992% 
+ + average rowUcol correct (VOC measure): 84.015091260274% 
+ + global correct: 91.94336707344% 
+## Accuracy on training data = 0.98280020381589 
+## Accuracy on holdout data = 0.9194336707344 
 
 ## Epoch #10 
 ## Learning rate is 5.2631578947368e-06 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   40443    1242     174       0]   96.617% 	[class: 1]
- [     431   39183     196       0]   98.425% 	[class: 2]
- [      70      86    6490       0]   97.653% 	[class: 3]
+[[   41205     537     117       0]   98.438% 	[class: 1]
+ [     478   39105     227       0]   98.229% 	[class: 2]
+ [      15      25    6606       0]   99.398% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 97.564985354741% 
- + average rowUcol correct (VOC measure): 94.408353169759% 
- + global correct: 97.510049255506% 
+ + average row correct: 98.688278595606% 
+ + average rowUcol correct (VOC measure): 96.219954888026% 
+ + global correct: 98.415897639133% 
 ConfusionMatrix:
-[[   10700    1717     346       0]   83.836% 	[class: 1]
- [     192   16508      91       0]   98.315% 	[class: 2]
- [      29      71    2059       0]   95.368% 	[class: 3]
+[[   10776    1469     518       0]   84.432% 	[class: 1]
+ [     450   16248      93       0]   96.766% 	[class: 2]
+ [      14      82    2063       0]   95.553% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 92.506295442581% 
- + average rowUcol correct (VOC measure): 83.525484800339% 
- + global correct: 92.287074701227% 
-## Accuracy on training data = 0.97510049255506 
-## Accuracy on holdout data = 0.92287074701227 
+ + average row correct: 92.250394821167% 
+ + average rowUcol correct (VOC measure): 81.509943803151% 
+ + global correct: 91.71948412323% 
+## Accuracy on training data = 0.98415897639133 
+## Accuracy on holdout data = 0.9171948412323 
 
 ## Epoch #11 
 ## Learning rate is 5e-06 
 ## Evaluating current model on training and holdout data... 
 ConfusionMatrix:
-[[   40847     871     141       0]   97.582% 	[class: 1]
- [     625   38962     223       0]   97.870% 	[class: 2]
- [      75      53    6518       0]   98.074% 	[class: 3]
+[[   41265     529      65       0]   98.581% 	[class: 1]
+ [     434   39207     169       0]   98.485% 	[class: 2]
+ [      27      32    6587       0]   99.112% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 97.842089335124% 
- + average rowUcol correct (VOC measure): 94.869544108709% 
- + global correct: 97.748966766687% 
+ + average row correct: 98.726167281469% 
+ + average rowUcol correct (VOC measure): 96.788370609283% 
+ + global correct: 98.577818037706% 
 ConfusionMatrix:
-[[   11009    1404     350       0]   86.257% 	[class: 1]
- [     254   16430     107       0]   97.850% 	[class: 2]
- [      31      59    2069       0]   95.831% 	[class: 3]
+[[   10722    1602     439       0]   84.008% 	[class: 1]
+ [     393   16329      69       0]   97.249% 	[class: 2]
+ [      16      93    2050       0]   94.951% 	[class: 3]
  [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 93.31286350886% 
- + average rowUcol correct (VOC measure): 84.490323066711% 
- + global correct: 93.047015419544% 
-## Accuracy on training data = 0.97748966766687 
-## Accuracy on holdout data = 0.93047015419544 
+ + average row correct: 92.069451014201% 
+ + average rowUcol correct (VOC measure): 82.199015220006% 
+ + global correct: 91.763630057074% 
+## Accuracy on training data = 0.98577818037706 
+## Accuracy on holdout data = 0.91763630057074 
 
 ## Epoch #12 
 ## Learning rate is 4.7619047619048e-06 
-## Evaluating current model on training and holdout data... 
-ConfusionMatrix:
-[[   40695    1009     155       0]   97.219% 	[class: 1]
- [     462   39147     201       0]   98.335% 	[class: 2]
- [      54      61    6531       0]   98.270% 	[class: 3]
- [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 97.94115225474% 
- + average rowUcol correct (VOC measure): 95.023169120153% 
- + global correct: 97.801053048746% 
-ConfusionMatrix:
-[[   10774    1639     350       0]   84.416% 	[class: 1]
- [     202   16500      89       0]   98.267% 	[class: 2]
- [      28      69    2062       0]   95.507% 	[class: 3]
- [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 92.729999621709% 
- + average rowUcol correct (VOC measure): 83.828109502792% 
- + global correct: 92.504651089459% 
-## Accuracy on training data = 0.97801053048746 
-## Accuracy on holdout data = 0.92504651089459 
-
-## Epoch #13 
-## Learning rate is 4.5454545454545e-06 
-## Evaluating current model on training and holdout data... 
-ConfusionMatrix:
-[[   40394    1275     190       0]   96.500% 	[class: 1]
- [     304   39338     168       0]   98.814% 	[class: 2]
- [      29      62    6555       0]   98.631% 	[class: 3]
- [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 97.981758912404% 
- + average rowUcol correct (VOC measure): 94.977158308029% 
- + global correct: 97.703674347506% 
-ConfusionMatrix:
-[[   10166    2137     460       0]   79.652% 	[class: 1]
- [     146   16565      80       0]   98.654% 	[class: 2]
- [      14      78    2067       0]   95.739% 	[class: 3]
- [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 91.348310311635% 
- + average rowUcol correct (VOC measure): 80.802184343338% 
- + global correct: 90.808185917447% 
-## Accuracy on training data = 0.97703674347506 
-## Accuracy on holdout data = 0.90808185917447 
-
-## Epoch #14 
-## Learning rate is 4.3478260869565e-06 
-## Evaluating current model on training and holdout data... 
-ConfusionMatrix:
-[[   40757     905     197       0]   97.367% 	[class: 1]
- [     446   39115     249       0]   98.254% 	[class: 2]
- [      23      28    6595       0]   99.233% 	[class: 3]
- [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 98.284727334976% 
- + average rowUcol correct (VOC measure): 95.094945033391% 
- + global correct: 97.907490233822% 
-ConfusionMatrix:
-[[   10636    1591     536       0]   83.335% 	[class: 1]
- [     216   16440     135       0]   97.910% 	[class: 2]
- [      15      57    2087       0]   96.665% 	[class: 3]
- [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 92.636450131734% 
- + average rowUcol correct (VOC measure): 81.585866212845% 
- + global correct: 91.959133478384% 
-## Accuracy on training data = 0.97907490233822 
-## Accuracy on holdout data = 0.91959133478384 
-
-## Epoch #15 
-## Learning rate is 4.1666666666667e-06 
-## Evaluating current model on training and holdout data... 
-ConfusionMatrix:
-[[   40680    1027     152       0]   97.183% 	[class: 1]
- [     349   39302     159       0]   98.724% 	[class: 2]
- [      32      52    6562       0]   98.736% 	[class: 3]
- [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 98.214473327001% 
- + average rowUcol correct (VOC measure): 95.582614342372% 
- + global correct: 97.994678140746% 
-ConfusionMatrix:
-[[   10480    1864     419       0]   82.112% 	[class: 1]
- [     187   16517      87       0]   98.368% 	[class: 2]
- [      17      72    2070       0]   95.878% 	[class: 3]
- [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 92.119415601095% 
- + average rowUcol correct (VOC measure): 82.230983177821% 
- + global correct: 91.656418503453% 
-## Accuracy on training data = 0.97994678140746 
-## Accuracy on holdout data = 0.91656418503453 
-
-## Epoch #16 
-## Learning rate is 4e-06 
-## Evaluating current model on training and holdout data... 
-ConfusionMatrix:
-[[   40910     844     105       0]   97.733% 	[class: 1]
- [     448   39222     140       0]   98.523% 	[class: 2]
- [      41      45    6560       0]   98.706% 	[class: 3]
- [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 98.320613304774% 
- + average rowUcol correct (VOC measure): 96.057291825612% 
- + global correct: 98.162260091717% 
-ConfusionMatrix:
-[[   10828    1595     340       0]   84.839% 	[class: 1]
- [     230   16482      79       0]   98.160% 	[class: 2]
- [      27      72    2060       0]   95.415% 	[class: 3]
- [       0       0       0       0]]  nan% 	[class: 4]
- + average row correct: 92.804419994354% 
- + average rowUcol correct (VOC measure): 84.121960401535% 
- + global correct: 92.61186264308% 
-## Accuracy on training data = 0.98162260091717 
-## Accuracy on holdout data = 0.9261186264308 
-
-## Epoch #17 
-## Learning rate is 3.8461538461538e-06 

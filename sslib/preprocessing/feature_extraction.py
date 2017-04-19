@@ -10,7 +10,7 @@ import numpy as np
 from scipy import signal
 from sslib.parsing import RecordingsParserUZH, RecordingsParserUSZ
 import matplotlib.pyplot as plt
-
+import math
 
 class _FeatureExtractor(object):
     """Base class used for feature extraction. It is initialized with
@@ -26,7 +26,7 @@ class _FeatureExtractor(object):
                 |____________|____________|__________|
     """
 
-    def __init__(self, recording_filepaths, interval_size=4):
+    def __init__(self, recording_filepaths, cpars, interval_size=4):
         """
         Parameters
         ----------
@@ -38,6 +38,7 @@ class _FeatureExtractor(object):
         self.recording_filepaths = recording_filepaths
         self.interval_size = interval_size
         self.parser = None
+        self.cpars = cpars
 
     def _temporal_extractor(self, eeg1, eeg2, emg, sample_rate):
         """Get raw temporal signal from each epoch.
@@ -46,6 +47,16 @@ class _FeatureExtractor(object):
         samples_per_epoch = int(self.interval_size*sample_rate)
         epochs = len(eeg1)/samples_per_epoch
         length = samples_per_epoch*epochs
+        """
+        print np.mean(eeg1)
+        print np.std(eeg1)
+        print np.mean(eeg2)
+        print np.std(eeg2)
+        print np.mean(emg)
+        print np.std(emg)
+        print eeg2[:10]
+        exit()
+        """
         eeg1 = np.reshape(eeg1, (epochs, samples_per_epoch))
         eeg2 = np.reshape(eeg2, (epochs, samples_per_epoch))
         emg = np.reshape(emg, (epochs, samples_per_epoch))
@@ -78,50 +89,60 @@ class _FeatureExtractor(object):
         epochs = len(eeg1)/samples_per_epoch
         
         # Init
-        spectrum_len = int(window / 2 + 1);
-        eeg_f = np.linspace(0, spectrum_len - 1, spectrum_len) / 4
-
-        delta = np.where(np.logical_and(0.49 < eeg_f, eeg_f <= 4))[0]
-        theta = np.where(np.logical_and(6    < eeg_f, eeg_f <= 9))[0]
-        all_bands = np.where(np.logical_and(4 <= eeg_f, eeg_f <= 40))[0]
-
         eeg1_delta = np.zeros(iters)
         eeg1_theta = np.zeros(iters)
+        eeg1_alpha = np.zeros(iters)
         eeg2_delta = np.zeros(iters)
         eeg2_theta = np.zeros(iters)
+        eeg2_alpha = np.zeros(iters)
         emg_band = np.zeros(iters)
-        
+      
+        # Identify important frequency bands
+        nu = np.fft.rfftfreq(window, 1.0/sample_rate)
+        delta_band = np.logical_and(nu>=0.5, nu<=4)
+        theta_band = np.logical_and(nu>=6, nu<=9)
+        alpha_band = np.logical_and(nu>9, nu<=15)
+        all_bands = np.logical_and(nu>=4, nu<=40)
+
+
         for i in range(iters):
             # eeg1
-            ft = np.abs(np.fft.rfft(eeg1[i:i+window])) ** 2
-            eeg1_delta[i] = np.sum(ft[delta])
-            eeg1_theta[i] = np.sum(ft[theta])
+            ft = np.absolute(np.fft.rfft(eeg1[i:i+window])) ** 2
+            eeg1_delta[i] = np.sum(ft[delta_band])
+       #     eeg1_theta[i] = math.sqrt(np.sum(ft[theta_band])/window*2)
+       #     eeg2_alpha[i] = math.sqrt(np.sum(ft[alpha_band])/window*2)
             # eeg2
-            #ft = np.abs(np.fft.rfft(eeg2[i:i+window])) ** 2
-            eeg2_delta[i] = np.sum(ft[delta])
-            eeg2_theta[i] = np.sum(ft[theta])
+            ft = np.absolute(np.fft.rfft(eeg2[i:i+window])) ** 2
+            eeg2_delta[i] = np.sum(ft[delta_band])
+       #     eeg2_theta[i] = math.sqrt(np.sum(ft[theta_band])/window*2)
+       #     eeg2_alpha[i] = math.sqrt(np.sum(ft[alpha_band])/window*2)
             # emg
-            #ft = np.abs(np.fft.rfft(emg[i:i+window])) ** 2
+            ft = np.absolute(np.fft.rfft(emg[i:i+window])) ** 2
             emg_band[i] = np.sum(ft[all_bands])
 
-        print np.shape(eeg1_delta)
         # padding
         eeg1_delta = np.pad(eeg1_delta, pad_width=window/2, mode='edge')
-        eeg1_theta = np.pad(eeg1_theta, pad_width=window/2, mode='edge')
+        #eeg1_theta = np.pad(eeg1_theta, pad_width=window/2, mode='edge')
+        #eeg1_alpha = np.pad(eeg1_alpha, pad_width=window/2, mode='edge')
         eeg2_delta = np.pad(eeg2_delta, pad_width=window/2, mode='edge')
-        eeg2_theta = np.pad(eeg2_theta, pad_width=window/2, mode='edge')
+        #eeg2_theta = np.pad(eeg2_theta, pad_width=window/2, mode='edge')
+        #eeg2_alpha = np.pad(eeg2_alpha, pad_width=window/2, mode='edge')
         emg_band   = np.pad(emg_band, pad_width=window/2, mode='edge')
-        print np.shape(eeg1_delta)
+        
         # reshaping
         eeg1_delta = np.reshape(eeg1_delta, (epochs, samples_per_epoch))
-        eeg1_theta = np.reshape(eeg1_theta, (epochs, samples_per_epoch))
+        #eeg1_theta = np.reshape(eeg1_theta, (epochs, samples_per_epoch))
+        #eeg1_alpha = np.reshape(eeg1_alpha, (epochs, samples_per_epoch))
         eeg2_delta = np.reshape(eeg2_delta, (epochs, samples_per_epoch))
-        eeg2_theta = np.reshape(eeg2_theta, (epochs, samples_per_epoch))
+        #eeg2_theta = np.reshape(eeg2_theta, (epochs, samples_per_epoch))
+        #eeg2_alpha = np.reshape(eeg2_alpha, (epochs, samples_per_epoch))
         emg_band   = np.reshape(emg_band, (epochs, samples_per_epoch))
-        print np.shape(eeg1_delta)
-        # return
-        return np.hstack((eeg1_delta, eeg1_theta, eeg2_delta, eeg2_theta, emg_band))
+        
+        # stack and return
+        #return np.hstack((eeg1_delta, eeg1_theta, eeg1_alpha, eeg2_delta, eeg2_theta, eeg2_alpha, emg_band))
 
+        #return np.hstack((eeg1_delta, eeg1_theta, eeg2_delta, eeg2_theta, emg_band))
+        return np.hstack((eeg1_delta, eeg2_delta, emg_band))
 
     def _energy_extractor(self, eeg1, eeg2, emg, sample_rate):
         """Get fourier spectral energy features for each epoch.
@@ -184,7 +205,7 @@ class _FeatureExtractor(object):
         """
 
         [eeg1, eeg2, emg, srate] = self.parser.get_signals()
-        return fextractor(eeg1, eeg2, emg, srate)
+        return fextractor(self.cpars[0]*eeg1, self.cpars[1]*eeg2, self.cpars[2]*emg, srate)
 
     def get_temporal_features(self):
         """Interface function for obtaining temporal features.
@@ -206,16 +227,7 @@ class FeatureExtractorUZH(_FeatureExtractor):
     """A class for extracting features from files given in UZH format
     """
 
-    def __init__(self, recording_filepaths, interval_size=4):
+    def __init__(self, recording_filepaths, cpars, interval_size=4):
         super(FeatureExtractorUZH, self)\
-                    .__init__(recording_filepaths, interval_size=4)
+                    .__init__(recording_filepaths, cpars, interval_size=4)
         self.parser = RecordingsParserUZH(self.recording_filepaths)
-
-class FeatureExtractorUSZ(_FeatureExtractor):
-    """A class for extracting features from files given in USZ format
-    """
-
-    def __init__(self, recording_filepaths, interval_size=4):
-        super(FeatureExtractorUSZ, self)\
-                    .__init__(recording_filepaths, interval_size=4)
-        self.parser = RecordingsParserUSZ(self.recording_filepaths)

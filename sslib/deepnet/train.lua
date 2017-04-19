@@ -77,4 +77,6 @@ end
 
 -- Save model which has highest accuracy on holdout data
 local val, ind = holdoutacc:topk(1, true)
-torch.save('models/'..params.architecture..'_'..params.gpu, trainedmodels[ind[1]])
+bestModel = trainedmodels[ind[1]]
+bestModel:clearState()
+torch.save('models/'..params.architecture..'_'..params.gpu, bestModel)

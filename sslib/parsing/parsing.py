@@ -57,7 +57,16 @@ class RecordingsParserUZH(_RecordingsParser):
             if np.shape(eeg2)[0] else data.X[data.chan_lab.index('EEG2')]
             emg = np.hstack([emg, data.X[data.chan_lab.index('EMG')]]) \
             if np.shape(emg)[0] else data.X[data.chan_lab.index('EMG')]
-
+            
+            # TODO: Think of more elegant way of doing this
+            srate = int(srate)
+            if srate != 128:
+                print "Warning: resampling is being performed"
+                from scipy import signal
+                eeg1 = signal.resample(eeg1,len(eeg1)/srate*128)
+                eeg2 = signal.resample(eeg2,len(eeg2)/srate*128)
+                emg = signal.resample(emg,len(emg)/srate*128)
+                srate = 128
             print "## Recording " + filepath + " parsed"
 
         return [eeg1, eeg2, emg, srate]

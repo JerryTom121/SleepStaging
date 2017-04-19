@@ -53,9 +53,9 @@ class NormalizerZMUV(_Normalizer):
             features: a matrix of features to be transformed."""
 
         for i in range(self.num_channels):
-            self.means[i] = np.mean(features[:, i*self.num_features:(i+1)*self.num_features].flatten())
-            self.stds[i] = np.std(features[:, i*self.num_features:(i+1)*self.num_features].flatten())
-       
+            self.means[i] = np.mean(features[:, i*self.num_features:(i+1)*self.num_features])
+            self.stds[i] = np.std(features[:, i*self.num_features:(i+1)*self.num_features])
+        
         print self.means
         print self.stds
         self.mean = np.mean(features)
@@ -69,16 +69,19 @@ class NormalizerZMUV(_Normalizer):
         ----------
             features: a matrix of features to be transformed."""
         
+        #print "Per-channel normalization"
         #for i in range(self.num_channels):
         #    features[:, i*self.num_features:(i+1)*self.num_features] = \
         #    (features[:, i*self.num_features:(i+1)*self.num_features]-self.means[i])/self.stds[i]
 
+        print "Global normalization"
         features = (features-self.mean)/self.std
 
         print self.mean
         print self.std
 
         for i in range(self.num_channels):
+            print "Channel number " + str(i)
             print np.shape(features[:, i*self.num_features:(i+1)*self.num_features])
             print np.mean(features[:, i*self.num_features:(i+1)*self.num_features].flatten())
             print np.std(features[:, i*self.num_features:(i+1)*self.num_features].flatten())

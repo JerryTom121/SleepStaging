@@ -7,12 +7,11 @@ local M = {};
 -- @param nlabels number of labels per sample
 --------------------------------------------------------
 function M.load_dataset(filepath,nchannels,nlabels)
-
+	
 	local dataset = {}
 
 	-- Read .csv file containing the data set
 	local datasetCSV  = readCSV(filepath)
-	print("## Data loaded from .csv file")
 
 	-- Infer the dimensions of loaded data set	
 	local nfeatures = datasetCSV:size(2) - nlabels
@@ -55,8 +54,6 @@ function M.load_dataset(filepath,nchannels,nlabels)
 		dataset.label = dataset.label:cuda()
 	end
 	
-	print("## Data reshaped and made compatible for CUDA")
-
 	return dataset
 end
 
@@ -67,7 +64,8 @@ end
 -- @param filepath the path to .csv file
 ----------------------------------------
 function readCSV(filepath)
-       -- Read given file
+       
+	-- Read given file
         local csvFile = io.open(filepath, 'r')
         -- Count number of rows and columns in file
         local COLS

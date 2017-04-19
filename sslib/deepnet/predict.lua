@@ -1,30 +1,30 @@
 -------------------------------------------------------------------------------
 -- Make predictions on test set
---
--- @arg1 path to trained model to be used for predicting
--- @arg2 path to .csv file
--- @arg3 path to file to save predictions
 -------------------------------------------------------------------------------
 
+require 'torch'
 require 'cunn'
 require 'paths'
 local inout = require 'sslib.deepnet.lib.inout'
 local eval  = require 'sslib.deepnet.lib.eval'
 local util  = require 'sslib.deepnet.lib.util'
 
--- Command line argument parsing
-modelpath = arg[1]
-testsetpath = arg[2]
-outputpath = arg[3]
+-- Read and parse command line arguments
+cmd = torch.CmdLine()
+cmd:text('Options')
+cmd:option('-trainedModelPath', '', 'Path to previously trained neural net')
+cmd:option('-dataPath','', 'Path to .csv file containing input to neural net')
+cmd:option('-predictionsPath','', 'Where to generate predictions')
+cmd:text()
+params = cmd:parse(arg)
 
-print("## Load trained model")
-model = torch.load(modelpath)
-
-print("## Load test set")
-testset = inout.load_dataset(testsetpath, 3, 0)
-
-print("## Generate predictions")
-predictions = eval.predict(testset, model)
-
-print("## Write predictions into a file")
-torch.save(outputpath, util.toCSV(predictions), 'ascii')
+-- Load previously trained model
+model = torch.load(params.trainedModelPath)
+model:clearState()
+torch.save(params.trainedModelPath, model)
+-- Load data to be evaluated
+data = inout.load_dataset(params.dataPath, 3, 0)
+-- Make predictions
+predictions = eval.predict(data, model)
+-- Save predictions
+torch.save(params.predictionsPath, util.toCSV(predictions), 'ascii')
