@@ -13,12 +13,12 @@ num_neighbors = 2
 # ---------------------------------------------------------------------------- #
 # -- Variables related to training procedure --------------------------------- #
 # ---------------------------------------------------------------------------- #
-learning_rate = 0.00001
-learning_rate_decay = 0.1
-dropout = 0.5
-weight_decay = 0.001
+learning_rate = 0.000005 # 0.00001
+learning_rate_decay = 0.1 #0.1
+dropout = 0.3
+weight_decay = 0.0001
 batch_size = 100
-max_epochs = 30
+max_epochs = 10
 
 # ---------------------------------------------------------------------------- #
 # -- File paths to data sets: generally, there is no need to change this ----- #
@@ -45,6 +45,7 @@ EVALSET = {"recordings" : "./data/recordings/evaluation/",\
 
 PREDICTIONS = "./data/CSV/predictions.csv"
 
-TRAINED_MODEL_PATH = "./models/final_3way"
+TRAINED_MODEL_PATH = "./models/final_3way_normalized"
+#TRAINED_MODEL_PATH = "./models/final_3way_normalized"
 
-FULL_MODEL_PATH = "./models/final_3way"
+FULL_MODEL_PATH = "./models/final_3way_normalized"

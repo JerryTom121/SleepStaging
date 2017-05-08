@@ -31,45 +31,111 @@ class _RecordingsParser(object):
             self.filepaths = filepaths
             self.filepaths.sort()
 
-    def get_signals(self):
+    def get_signals(self, normalize):
         """To be implemented in derived classes
         """
 
 class RecordingsParserUZH(_RecordingsParser):
     """Class for parsing files given in UZH format.
     """
-    def get_signals(self):
+    def get_signals(self, normalize, filtering):
         """
         """
 
         eeg1 = np.ndarray(0)
         eeg2 = np.ndarray(0)
         emg = np.ndarray(0)
+        srate = 0
 
         for filepath in self.filepaths:
 
             data = load_edf(filepath)
             srate = data.sample_rate
 
-            eeg1 = np.hstack([eeg1, data.X[data.chan_lab.index('EEG1')]]) \
-            if np.shape(eeg1)[0] else data.X[data.chan_lab.index('EEG1')]
-            eeg2 = np.hstack([eeg2, data.X[data.chan_lab.index('EEG2')]]) \
-            if np.shape(eeg2)[0] else data.X[data.chan_lab.index('EEG2')]
-            emg = np.hstack([emg, data.X[data.chan_lab.index('EMG')]]) \
-            if np.shape(emg)[0] else data.X[data.chan_lab.index('EMG')]
-            
-            # TODO: Think of more elegant way of doing this
-            srate = int(srate)
-            if srate != 128:
-                print "Warning: resampling is being performed"
-                from scipy import signal
-                eeg1 = signal.resample(eeg1,len(eeg1)/srate*128)
-                eeg2 = signal.resample(eeg2,len(eeg2)/srate*128)
-                emg = signal.resample(emg,len(emg)/srate*128)
-                srate = 128
+            s1 = data.X[0]
+            s2 = data.X[1]
+            s3 = data.X[2]
+
+            new_len = int(len(s1) - (len(s1)%(srate*4)))
+            s1 = s1[0:new_len]
+            s2 = s2[0:new_len]
+            s3 = s3[0:new_len]
+
+            cheat = {# Training
+                     "AS87I" : [45,77,4],\
+                     "AS87H" : [45,77,4],\
+                     "AS73D" : [31,48,11],\
+                     "AS73E" : [31,48,11],\
+                     "AS54B" : [36,50,6],\
+                     "AS54C" : [36,50,6],\
+                     "AS53B" : [38,80,11],\
+                     "AS53C" : [38,80,11],\
+                     "AS76E" : [30,64,11],\
+                     "AS76D" : [30,64,11],\
+                     "AS75E" : [36,46,6],\
+                     "AS75D" : [36,46,6],\
+                     # Holdout
+                     "AS52B" : [33,58,8],\
+                     "AS52C" : [33,58,8],\
+                     "AS55B" : [42,57,3],\
+                     "AS55C" : [42,57,3],\
+                     # Daniela
+                     "Trial2" : [29,21,11]}
+            code = filepath.split("/")[-1].split('.')[0]
+ 
+            if filtering:
+                print "## Warning: performing filtering"
+                lowcut = 10
+                highcut = 30
+                # TEST: signal filtering
+                from scipy.signal import butter, lfilter
+                nyq = 0.5 * srate
+                low = lowcut / nyq
+                high = highcut / nyq
+                b, a = butter(3, [low, high], btype='band')
+                s3 = lfilter(b, a, s3)
+
+            if normalize:
+                # TEST: Per-file standardization
+                from sklearn.preprocessing import RobustScaler
+                from sklearn.preprocessing import StandardScaler
+                print "## Warning: signal rescaling is on"
+                #s1 = (s1-np.mean(s1))/cheat[code][0]
+                #s2 = (s2-np.mean(s2))/cheat[code][1]
+                #s3 = (s3-np.mean(s3))/cheat[code][2]
+                #print code
+                #print np.std(s1)
+                #s1 = (s1-np.mean(s1))/np.std(s1)
+                #s2 = (s2-np.mean(s2))/np.std(s2)
+                #s3 = (s3-np.mean(s3))/np.std(s3)
+                """
+                s1 = RobustScaler().fit_transform(s1.reshape(-1,1)).flatten()
+                s2 = RobustScaler().fit_transform(s2.reshape(-1,1)).flatten()
+                s3 = RobustScaler().fit_transform(s3.reshape(-1,1)).flatten()
+                """
+                s1 = StandardScaler().fit_transform(s1.reshape(-1,1)).flatten()
+                s2 = StandardScaler().fit_transform(s2.reshape(-1,1)).flatten()
+                s3 = StandardScaler().fit_transform(s3.reshape(-1,1)).flatten()
+           
+            eeg1 = np.hstack([eeg1, s1]) if np.shape(eeg1)[0] else s1
+            eeg2 = np.hstack([eeg2, s2]) if np.shape(eeg2)[0] else s2
+            emg = np.hstack([emg, s3]) if np.shape(emg)[0] else s3
+        
             print "## Recording " + filepath + " parsed"
 
+        # TODO: Think of more elegant way of doing this
+        srate = int(srate)
+        if srate != 128:
+            print "## Warning: resampling is being performed"
+            from scipy import signal
+            eeg1 = signal.resample(eeg1,len(eeg1)/srate*128)
+            eeg2 = signal.resample(eeg2,len(eeg2)/srate*128)
+            emg = signal.resample(emg,len(emg)/srate*128)
+
+            srate = 128
+
         return [eeg1, eeg2, emg, srate]
+#        return [eeg2, eeg1, emg, srate]
 
 class RecordingsParserUSZ(_RecordingsParser):
     """Class for parsing files given in USZ format.
@@ -146,7 +212,6 @@ class _ScoringParser(object):
             print "## Scoring " + filepath + " parsed"
 
         return scorings
-
 
     def get_binary_scorings(self):
         """Get the scorings for artifact detection.

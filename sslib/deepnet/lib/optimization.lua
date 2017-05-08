@@ -49,7 +49,6 @@ function MBGD:train()
 
 	-- make sure our network is in the training mode
 	model:training()
-	criterion:evaluate()
 
 	-- move to CUDA
 	model = model:cuda()
@@ -119,7 +118,7 @@ local IAGD = torch.class('nn.IAGD')
 
 function IAGD:__init(inputAdaptor, baseModel, dataset)
         -- optimization pars
-        self.learningRate = 0.1
+        self.learningRate = 0.025
         self.batchSize = 1
         self.weightDecay = 0
         self.momentum = 0

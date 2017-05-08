@@ -39,13 +39,13 @@ trainedModel = torch.load(params.trainedModelPath)
 print("## Construct input adaptor")
 inputAdaptor = nn.Sequential():add(nn.CMul(1, 1, params.numChannels))
 
---[[
 print("## Construct exteneded model")
 local model = nn.Sequential():add(nn.CMul(1, 1, params.numChannels)):add(trainedModel:clone()):cuda()
 
 print("## Loading calibration data...")
 local calibset = inout.load_dataset(params.calibrationPath, params.numChannels, 1)
 
+--[[
 print("## Construct search grid")
 s = torch.Tensor(6)
 s[1] = 2; s[2] = 1; s[3] = 0.5; s[4] = -0.5; s[5] = -1; s[6] = -2;
@@ -65,14 +65,16 @@ for i = 1, s:size(1) do
 		end
 	end
 end
---]]
---[[
-model:get(1).weight[1][1][1] = -1
-model:get(1).weight[1][1][2] = -2
-model:get(1).weight[1][1][3] = -2
-eval.predict_and_evaluate(calibset, model)
+--
 --]]
 --
+model:get(1).weight[1][1][1] = 1
+model:get(1).weight[1][1][2] = 1
+model:get(1).weight[1][1][3] = 1
+print(model:get(1).weight)
+eval.predict_and_evaluate(calibset, model)
+--]]
+--[[
 
 --inputAdaptor:get(1).weight = inputAdaptor:get(1).weight * 0 - 1
 print(inputAdaptor:get(1).weight)
@@ -86,14 +88,14 @@ print(inputAdaptor:forward(x))
 -- Initialize mini-batch trainer
 local trainer = nn.IAGD(inputAdaptor, trainedModel, calibset)
 
-print("## Initial Evaluation of the full model on calibration data...")
-eval.predict_and_evaluate(calibset, trainer:getModel())
+--print("## Initial Evaluation of the full model on calibration data...")
+--eval.predict_and_evaluate(calibset, trainer:getModel())
 
-print("## Initial Evaluation of the base model on calibration data...")
-eval.predict_and_evaluate(calibset, trainer:getBaseModel())
+--print("## Initial Evaluation of the base model on calibration data...")
+--eval.predict_and_evaluate(calibset, trainer:getBaseModel())
 
 -- Perform training
-for epoch = 1, 5 do
+for epoch = 1, 7 do
 	print("\n## Epoch #"..epoch)
 	trainer:train()
 	print("## Learned weights:")

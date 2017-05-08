@@ -22,6 +22,9 @@ function M.predict(testset, network)
     for i=1, testset:size() do
         local val, ind = torch.max(network:forward(testset.data[i]), 1)
         predictions[i] = ind[1]
+	if i % (testset:size()/16) == 0 then
+                print(i.."/"..testset:size())
+        end
     end
 
     -- return
